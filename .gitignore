@@ -1,0 +1,15 @@
+# Obsidian local config (themes, plugins, workspace state)
+.obsidian/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Docker
+*.log
