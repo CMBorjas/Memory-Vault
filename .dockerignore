@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Obsidian
+.obsidian/
+
+# Data volumes (mounted at runtime, not baked into image)
+vault/
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Markdown notes (vault content, not engine code)
+*.md
+!mnemonic_engine/**

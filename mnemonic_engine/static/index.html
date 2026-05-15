@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Gravity | Mnemonic Engine</title>
+    <meta name="description" content="Grotesque sensory mnemonics for CS knowledge retention">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=3">
+</head>
+<body class="dark-mode">
+
+    <!-- ═══ BookStack Header ═══ -->
+    <header class="bs-header">
+        <div class="bs-header__inner">
+            <div class="bs-header__brand">
+                <span class="bs-icon">◈</span>
+                <span class="bs-title">Memory Vault</span>
+            </div>
+            
+            <div class="bs-header__search">
+                <input type="text" class="bs-search-input" placeholder="Search mnemonics..." disabled title="Search coming soon">
+            </div>
+            
+            <div class="bs-header__user" id="engine-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ BookStack Main Layout ═══ -->
+    <div class="bs-container">
+        
+        <!-- Sidebar -->
+        <aside class="bs-sidebar">
+            <nav class="bs-nav">
+                <h4 class="bs-nav__heading">Navigation</h4>
+                <button class="bs-nav__link bs-nav__link--active" data-view="upload" id="nav-upload">
+                    <span class="bs-nav__icon">↑</span> Upload Document
+                </button>
+                <button class="bs-nav__link" data-view="library" id="nav-library">
+                    <span class="bs-nav__icon">📚</span> Books (Library)
+                </button>
+                <button class="bs-nav__link" data-view="profiles" id="nav-profiles">
+                    <span class="bs-nav__icon">⚙</span> Kingdom Profiles
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="bs-content">
+            
+            <!-- ═══ Upload View ═══ -->
+            <div class="view view--active card" id="view-upload">
+                <div class="page-header">
+                    <h1>Upload Document</h1>
+                    <p class="text-muted">Import a new PDF to process through the mnemonic pipeline.</p>
+                </div>
+
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-zone__inner">
+                        <div class="upload-zone__icon">📄</div>
+                        <p class="upload-zone__text">Drop PDF here or <span class="upload-zone__browse">browse</span></p>
+                    </div>
+                    <input type="file" id="file-input" accept=".pdf" hidden>
+                </div>
+
+                <div class="book-selector">
+                    <h3>Assign to Book</h3>
+                    <div class="book-selector__grid" id="book-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="upload-progress hidden" id="upload-progress">
+                    <div class="upload-progress__bar">
+                        <div class="upload-progress__fill" id="progress-fill"></div>
+                    </div>
+                    <p class="upload-progress__text" id="progress-text">Processing...</p>
+                </div>
+            </div>
+
+            <!-- ═══ Library View ═══ -->
+            <div class="view card" id="view-library">
+                <div class="page-header">
+                    <h1>Books</h1>
+                    <p class="text-muted" id="doc-count">0 documents</p>
+                </div>
+                
+                <div class="library-grid" id="library-grid">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <div class="library-empty hidden" id="library-empty">
+                    <p>No documents processed yet.</p>
+                </div>
+            </div>
+
+            <!-- ═══ Document Detail View ═══ -->
+            <div class="view" id="view-document">
+                <div class="bs-breadcrumb">
+                    <button class="btn btn-link back-btn" id="back-to-library">Books</button>
+                    <span class="separator">></span>
+                    <span id="breadcrumb-title" class="current">Document</span>
+                </div>
+                
+                <div class="doc-layout">
+                    <!-- Main Content Card -->
+                    <div class="doc-main card">
+                        <div id="doc-header" class="doc-header-bookstack">
+                            <!-- Populated by JS -->
+                        </div>
+
+                        <div class="sections-list" id="sections-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Right Sidebar -->
+                    <aside class="doc-sidebar">
+                        <div class="sidebar-block">
+                            <h4>Actions</h4>
+                            <ul class="action-list">
+                                <li>
+                                    <button class="btn btn-link action-btn" id="btn-export">
+                                        <span class="icon">⇲</span> Export to Obsidian
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="btn btn-link action-btn text-danger" id="btn-delete">
+                                        <span class="icon">🗑</span> Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- ═══ Profiles View ═══ -->
+            <div class="view card" id="view-profiles">
+                <div class="page-header">
+                    <h1>Kingdom Profiles</h1>
+                    <p class="text-muted">Biological and sensory anchors configured in book_config.yml.</p>
+                </div>
+                <div class="profiles-grid" id="profiles-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ═══ Toast Notifications ═══ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/app.js?v=3"></script>
+</body>
+</html>

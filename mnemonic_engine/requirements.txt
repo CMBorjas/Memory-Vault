@@ -1,3 +1,14 @@
-# Mnemonic Engine Dependencies
+# Anti-Gravity Mnemonic Engine Dependencies
+
+# Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# PDF Processing
+PyMuPDF>=1.24.0
+
+# Templating & Config
+Jinja2>=3.1.0
 PyYAML>=6.0.1
 Markdown>=3.6.0

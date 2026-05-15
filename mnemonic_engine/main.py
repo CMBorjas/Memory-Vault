@@ -1,49 +1,231 @@
+"""
+Anti-Gravity Mnemonic Engine — FastAPI Application
+"""
 import os
-import yaml
+import uuid
+import json
+import shutil
 import logging
+from pathlib import Path
+from datetime import datetime
+from collections import Counter
+import re
 
-# Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+import fitz  # PyMuPDF
+import yaml
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-def load_config(config_path="book_config.yml"):
-    """Loads the book configuration defining mnemonic rules."""
-    if not os.path.exists(config_path):
-        logger.warning(f"Configuration file not found at {config_path}")
-        return {}
-    
-    with open(config_path, "r") as file:
-        try:
-            return yaml.safe_load(file)
-        except yaml.YAMLError as exc:
-            logger.error(f"Error parsing YAML config: {exc}")
-            return {}
+from engine import MnemonicEngine
+from exporter import ObsidianExporter
 
-def process_vault(vault_path="/vault"):
-    """Scans the vault for markdown files and applies mnemonic processing."""
-    logger.info(f"Starting mnemonic processing on vault at: {vault_path}")
-    
-    if not os.path.exists(vault_path):
-        logger.error(f"Vault path does not exist: {vault_path}")
-        return
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-7s | %(message)s", datefmt="%H:%M:%S")
+logger = logging.getLogger("anti-gravity")
 
-    # Basic directory traversal as a placeholder
-    for root, _, files in os.walk(vault_path):
-        for file in files:
-            if file.endswith(".md"):
-                file_path = os.path.join(root, file)
-                logger.info(f"Discovered: {file_path}")
-                # TODO: Implement markdown parsing and mnemonic injection logic here
+DATA_PATH = Path(os.getenv("DATA_PATH", "./data"))
+VAULT_PATH = Path(os.getenv("VAULT_PATH", "./vault"))
+UPLOAD_DIR = DATA_PATH / "uploads"
+PROCESSED_DIR = DATA_PATH / "processed"
+for d in [UPLOAD_DIR, PROCESSED_DIR, VAULT_PATH]:
+    d.mkdir(parents=True, exist_ok=True)
 
-if __name__ == "__main__":
-    logger.info("Initializing Anti-Gravity Mnemonic Engine...")
-    
-    # In the future, config and vault paths will likely be injected via environment variables or docker volumes
-    config = load_config()
-    if config:
-        logger.info(f"Loaded configuration for {len(config.keys())} book(s).")
-    
-    # Assuming the vault is mounted to /vault in the container
-    process_vault()
-    
-    logger.info("Mnemonic processing complete.")
+app = FastAPI(title="Anti-Gravity Mnemonic Engine", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+CONFIG_PATH = Path(__file__).parent / "book_config.yml"
+engine = MnemonicEngine(CONFIG_PATH)
+exporter = ObsidianExporter(VAULT_PATH)
+
+STATIC_DIR = Path(__file__).parent / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.get("/")
+async def serve_gui():
+    index_path = STATIC_DIR / "index.html"
+    if not index_path.exists():
+        return JSONResponse({"status": "engine running", "gui": "not found"})
+    return FileResponse(str(index_path))
+
+
+@app.get("/api/health")
+async def health():
+    return {"status": "alive", "version": "0.1.0", "books_loaded": list(engine.config.get("books", {}).keys())}
+
+
+@app.get("/api/books")
+async def list_books():
+    books = engine.config.get("books", {})
+    return {name: {k: v for k, v in p.items() if k != "visual_keywords"} for name, p in books.items()}
+
+
+@app.post("/api/upload")
+async def upload_pdf(file: UploadFile = File(...), book: str = "Networking"):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+    if book not in engine.config.get("books", {}):
+        raise HTTPException(status_code=400, detail=f"Unknown book '{book}'. Available: {list(engine.config['books'].keys())}")
+
+    doc_id = str(uuid.uuid4())[:8]
+    upload_path = UPLOAD_DIR / f"{doc_id}_{file.filename}"
+    with open(upload_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    logger.info(f"Uploaded: {file.filename} -> {upload_path.name} (book: {book})")
+
+    try:
+        sections = extract_pdf_sections(upload_path)
+        for section in sections:
+            section["mnemonics"] = engine.generate(section, book)
+
+        document = {
+            "id": doc_id, "filename": file.filename, "book": book,
+            "uploaded_at": datetime.now().isoformat(),
+            "section_count": len(sections), "sections": sections,
+        }
+        with open(PROCESSED_DIR / f"{doc_id}.json", "w") as f:
+            json.dump(document, f, indent=2)
+
+        return {"id": doc_id, "filename": file.filename, "book": book, "section_count": len(sections)}
+    except Exception as e:
+        logger.error(f"Processing failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/documents")
+async def list_documents():
+    docs = []
+    for p in sorted(PROCESSED_DIR.glob("*.json"), reverse=True):
+        with open(p) as f:
+            d = json.load(f)
+        docs.append({k: d[k] for k in ["id", "filename", "book", "uploaded_at", "section_count"]})
+    return docs
+
+
+@app.get("/api/documents/{doc_id}")
+async def get_document(doc_id: str):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        return json.load(f)
+
+
+@app.put("/api/documents/{doc_id}/sections/{section_idx}/mnemonics")
+async def update_mnemonics(doc_id: str, section_idx: int, mnemonics: dict):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    if section_idx < 0 or section_idx >= len(doc["sections"]):
+        raise HTTPException(status_code=400, detail="Invalid section index.")
+    doc["sections"][section_idx]["mnemonics"] = mnemonics
+    doc["sections"][section_idx]["user_edited"] = True
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Updated.", "section_idx": section_idx}
+
+
+@app.post("/api/documents/{doc_id}/regenerate/{section_idx}")
+async def regenerate_mnemonics(doc_id: str, section_idx: int):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    if section_idx < 0 or section_idx >= len(doc["sections"]):
+        raise HTTPException(status_code=400, detail="Invalid section index.")
+    section = doc["sections"][section_idx]
+    section["mnemonics"] = engine.generate(section, doc["book"])
+    section.pop("user_edited", None)
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Regenerated.", "mnemonics": section["mnemonics"]}
+
+
+@app.post("/api/documents/{doc_id}/export")
+async def export_document(doc_id: str):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    files = exporter.export(doc)
+    return {"message": f"Exported {len(files)} files.", "files": files}
+
+
+@app.delete("/api/documents/{doc_id}")
+async def delete_document(doc_id: str):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    p.unlink()
+    for f in UPLOAD_DIR.glob(f"{doc_id}_*"):
+        f.unlink()
+    return {"message": "Deleted.", "id": doc_id}
+
+
+# === PDF Extraction ===
+
+def extract_pdf_sections(pdf_path: Path) -> list:
+    doc = fitz.open(str(pdf_path))
+    sections, current = [], None
+
+    all_sizes = []
+    for page in doc:
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    if span["text"].strip():
+                        all_sizes.append(span["size"])
+
+    if not all_sizes:
+        doc.close()
+        return []
+
+    body_size = Counter(all_sizes).most_common(1)[0][0]
+    heading_thresh = body_size * 1.15
+
+    for page_num, page in enumerate(doc):
+        for block in page.get_text("dict")["blocks"]:
+            parts, is_heading = [], False
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    text = span["text"].strip()
+                    if not text:
+                        continue
+                    if span["size"] >= heading_thresh or (span["size"] > body_size and span["flags"] & 16):
+                        is_heading = True
+                    parts.append(text)
+
+            block_text = " ".join(parts).strip()
+            if not block_text:
+                continue
+
+            if is_heading:
+                if current and current["content"].strip():
+                    sections.append(current)
+                current = {"title": block_text, "content": "", "page": page_num + 1, "key_terms": []}
+            elif current:
+                current["content"] += block_text + "\n"
+            else:
+                current = {"title": "Introduction", "content": block_text + "\n", "page": 1, "key_terms": []}
+
+    if current and current["content"].strip():
+        sections.append(current)
+    doc.close()
+
+    for s in sections:
+        s["key_terms"] = _extract_key_terms(s["content"])
+    return sections
+
+
+def _extract_key_terms(text: str, max_terms: int = 8) -> list:
+    terms = set()
+    terms.update(re.findall(r'\b[A-Z]{2,}\b', text)[:4])
+    terms.update(re.findall(r'[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+', text)[:4])
+    return list(terms)[:max_terms]
