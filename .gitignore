@@ -13,3 +13,8 @@ __pycache__/
 
 # Docker
 *.log
+
+vault/
+data/uploads/
+data/processed/
+.obsidian/

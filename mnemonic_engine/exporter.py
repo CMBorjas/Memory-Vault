@@ -36,7 +36,7 @@ class ObsidianExporter:
             safe_title = re.sub(r'[^\w\s-]', '', title).strip()[:60]
             file_path = export_dir / f"{safe_title}.md"
 
-            content = self._render_section(section, book)
+            content = self._render_section(section, document, i)
 
             with open(file_path, "w") as f:
                 f.write(content)
@@ -54,13 +54,33 @@ class ObsidianExporter:
 
         return exported
 
-    def _render_section(self, section: dict, book: str) -> str:
-        """Render a single section as an Obsidian markdown note."""
+    def _render_section(self, section: dict, document: dict, index: int) -> str:
+        """Render a single section as an Obsidian markdown note with BookStack features."""
         title = section.get("title", "Untitled")
         content = section.get("content", "")
         mnemonics = section.get("mnemonics", {})
         page = section.get("page", "?")
         key_terms = section.get("key_terms", [])
+        book = document.get("book", "Uncategorized")
+        doc_filename_stem = Path(document.get("filename", "unknown")).stem
+        
+        sections = document.get("sections", [])
+        
+        # Navigation
+        prev_link = ""
+        if index > 0:
+            prev_title = sections[index - 1].get("title", f"Section {index}")
+            prev_safe = re.sub(r'[^\w\s-]', '', prev_title).strip()[:60]
+            prev_link = f"[[{prev_safe}|← Previous]]"
+            
+        next_link = ""
+        if index < len(sections) - 1:
+            next_title = sections[index + 1].get("title", f"Section {index + 2}")
+            next_safe = re.sub(r'[^\w\s-]', '', next_title).strip()[:60]
+            next_link = f"[[{next_safe}|Next →]]"
+            
+        nav_elements = [link for link in [prev_link, next_link] if link]
+        nav_bar = " | ".join(nav_elements)
 
         # Frontmatter
         tags = [book.lower(), "study", "mnemonic"]
@@ -73,7 +93,11 @@ class ObsidianExporter:
             "status: learning",
             "mnemonic_type: grotesque",
             f"source_page: {page}",
+            f"created_at: {document.get('uploaded_at', 'unknown')}",
             "---",
+            "",
+            f"> [!info] 📚 **Book:** [[_index|{doc_filename_stem}]]",
+            f"> **Chapter:** {title} | **Page:** {page}",
             "",
             f"# {title}",
             "",
@@ -103,7 +127,7 @@ class ObsidianExporter:
         kingdom = mnemonics.get("kingdom", "")
 
         lines.extend([
-            f"> [!abstract] \U0001f9e0 Memory Anchor: {acronym}",
+            f"> [!abstract] 🧠 Memory Anchor: {acronym}",
             f"> **Kingdom:** {kingdom}",
             "> ",
             "> **The Imagery:**",
@@ -114,6 +138,10 @@ class ObsidianExporter:
             "> ",
             "> **The Logic:**",
             f"> {logic}",
+            "",
+            "---",
+            "",
+            f"*{nav_bar}*",
         ])
 
         return "\n".join(lines) + "\n"
