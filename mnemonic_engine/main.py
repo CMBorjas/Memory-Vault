@@ -81,10 +81,15 @@ async def upload_pdf(file: UploadFile = File(...), book: str = "Networking"):
         for section in sections:
             section["mnemonics"] = engine.generate(section, book)
 
+        now = datetime.now().isoformat()
         document = {
             "id": doc_id, "filename": file.filename, "book": book,
-            "uploaded_at": datetime.now().isoformat(),
+            "uploaded_at": now, "updated_at": now,
+            "created_by": "Local User",
             "section_count": len(sections), "sections": sections,
+            "favourite": False,
+            "revision": 1,
+            "revisions": [{"revision": 1, "timestamp": now, "summary": "Initial import via PDF ingestion"}],
         }
         with open(PROCESSED_DIR / f"{doc_id}.json", "w") as f:
             json.dump(document, f, indent=2)
@@ -125,6 +130,13 @@ async def update_mnemonics(doc_id: str, section_idx: int, mnemonics: dict):
         raise HTTPException(status_code=400, detail="Invalid section index.")
     doc["sections"][section_idx]["mnemonics"] = mnemonics
     doc["sections"][section_idx]["user_edited"] = True
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": f"Edited mnemonics for section {section_idx}"
+    })
     with open(p, "w") as f:
         json.dump(doc, f, indent=2)
     return {"message": "Updated.", "section_idx": section_idx}
@@ -156,6 +168,82 @@ async def export_document(doc_id: str):
         doc = json.load(f)
     files = exporter.export(doc)
     return {"message": f"Exported {len(files)} files.", "files": files}
+
+
+@app.post("/api/documents/{doc_id}/copy")
+async def copy_document(doc_id: str):
+    """Create a deep copy of a document with a new ID."""
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    new_id = str(uuid.uuid4())[:8]
+    now = datetime.now().isoformat()
+    doc["id"] = new_id
+    doc["filename"] = f"(Copy) {doc['filename']}"
+    doc["uploaded_at"] = now
+    doc["updated_at"] = now
+    doc["revision"] = 1
+    doc["revisions"] = [{"revision": 1, "timestamp": now, "summary": f"Copied from document {doc_id}"}]
+    with open(PROCESSED_DIR / f"{new_id}.json", "w") as f_out:
+        json.dump(doc, f_out, indent=2)
+    logger.info(f"Copied document {doc_id} -> {new_id}")
+    return {"message": "Document copied.", "new_id": new_id, "filename": doc["filename"]}
+
+
+@app.put("/api/documents/{doc_id}/move")
+async def move_document(doc_id: str, book: str = "Networking"):
+    """Move a document to a different book/kingdom."""
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    if book not in engine.config.get("books", {}):
+        raise HTTPException(status_code=400, detail=f"Unknown book '{book}'. Available: {list(engine.config['books'].keys())}")
+    with open(p) as f:
+        doc = json.load(f)
+    old_book = doc["book"]
+    doc["book"] = book
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": f"Moved from {old_book} to {book}"
+    })
+    with open(p, "w") as f_out:
+        json.dump(doc, f_out, indent=2)
+    logger.info(f"Moved document {doc_id} from {old_book} to {book}")
+    return {"message": f"Moved to {book}.", "old_book": old_book, "new_book": book}
+
+
+@app.put("/api/documents/{doc_id}/favourite")
+async def toggle_favourite(doc_id: str):
+    """Toggle the favourite status of a document."""
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    doc["favourite"] = not doc.get("favourite", False)
+    with open(p, "w") as f_out:
+        json.dump(doc, f_out, indent=2)
+    return {"message": "Toggled.", "favourite": doc["favourite"]}
+
+
+@app.get("/api/documents/{doc_id}/revisions")
+async def get_revisions(doc_id: str):
+    """Get the revision history for a document."""
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    return {
+        "id": doc_id,
+        "current_revision": doc.get("revision", 1),
+        "revisions": doc.get("revisions", [])
+    }
 
 
 @app.delete("/api/documents/{doc_id}")

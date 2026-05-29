@@ -65,6 +65,15 @@ function switchView(viewId) {
     if (navLink) navLink.classList.add('bs-nav__link--active');
     
     if (viewId === 'library') loadLibrary();
+
+    const docSidebar = document.getElementById('doc-sidebar-left');
+    if (docSidebar) {
+        if (viewId === 'document') {
+            docSidebar.classList.remove('hidden');
+        } else {
+            docSidebar.classList.add('hidden');
+        }
+    }
 }
 
 // ═══ Upload & Book Selection ═══
@@ -255,13 +264,55 @@ function renderDocument() {
     
     const doc = currentDocument;
     const profile = bookProfiles[doc.book] || {};
-    document.getElementById('breadcrumb-title').textContent = doc.title;
+    const displayTitle = doc.filename || doc.title || 'Untitled';
+    document.getElementById('breadcrumb-title').textContent = displayTitle;
     
     document.getElementById('doc-header').innerHTML = `
-        <h1>${doc.title}</h1>
+        <h1>${displayTitle}</h1>
         <p class="text-muted" style="margin-bottom: 2rem;">Processed via Anti-Gravity Mnemonic Engine</p>
     `;
 
+    // ─── Details Sidebar ───
+    const detailList = document.getElementById('detail-list');
+    const revision = doc.revision || 1;
+    const createdAt = doc.uploaded_at ? timeAgo(doc.uploaded_at) : 'Unknown';
+    const updatedAt = doc.updated_at ? timeAgo(doc.updated_at) : createdAt;
+    const createdBy = doc.created_by || 'Local User';
+
+    detailList.innerHTML = `
+        <li>
+            <span class="detail-icon">🕓</span>
+            <span class="detail-text">Revision <strong>#${revision}</strong></span>
+        </li>
+        <li>
+            <span class="detail-icon">★</span>
+            <span class="detail-text">Created <strong>${createdAt}</strong> by ${createdBy}</span>
+        </li>
+        <li>
+            <span class="detail-icon">✏️</span>
+            <span class="detail-text">Updated <strong>${updatedAt}</strong> by ${createdBy}</span>
+        </li>
+        <li>
+            <span class="detail-icon">👁</span>
+            <span class="detail-text">Watching new pages and updates</span>
+        </li>
+    `;
+
+    // ─── Favourite state ───
+    const favBtn = document.getElementById('btn-favourite');
+    const favIcon = document.getElementById('fav-icon');
+    const favText = document.getElementById('fav-text');
+    if (doc.favourite) {
+        favBtn.classList.add('fav-active');
+        favIcon.textContent = '★';
+        favText.textContent = 'Favourited';
+    } else {
+        favBtn.classList.remove('fav-active');
+        favIcon.textContent = '☆';
+        favText.textContent = 'Favourite';
+    }
+
+    // ─── Sections ───
     const sectionsList = document.getElementById('sections-list');
     sectionsList.innerHTML = '';
 
@@ -307,9 +358,18 @@ function renderDocument() {
         sectionsList.appendChild(div);
     });
     
-    // Bind document level actions
+    // ─── Bind all sidebar actions ───
     document.getElementById('btn-export').onclick = () => exportDocument(doc.id);
     document.getElementById('btn-delete').onclick = () => deleteDocument(doc.id);
+    document.getElementById('btn-copy').onclick = () => copyDocument(doc.id);
+    document.getElementById('btn-move').onclick = () => openMoveModal(doc);
+    document.getElementById('btn-revisions').onclick = () => openRevisionsModal(doc.id);
+    document.getElementById('btn-favourite').onclick = () => toggleFavourite(doc.id);
+    document.getElementById('btn-edit-toggle').onclick = () => toggleEditMode();
+
+    // Modal close buttons
+    document.getElementById('close-revisions').onclick = () => document.getElementById('modal-revisions').classList.add('hidden');
+    document.getElementById('close-move').onclick = () => document.getElementById('modal-move').classList.add('hidden');
 }
 
 // ═══ Actions ═══
@@ -389,7 +449,155 @@ async function deleteDocument(id) {
     }
 }
 
+async function copyDocument(id) {
+    try {
+        const res = await fetch(`/api/documents/${id}/copy`, { method: 'POST' });
+        if (!res.ok) throw new Error('Copy failed');
+        const data = await res.json();
+        showToast(`Copied as "${data.filename}"`, 'success');
+        // Navigate to the new copy
+        await loadDocument(data.new_id);
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function toggleFavourite(id) {
+    try {
+        const res = await fetch(`/api/documents/${id}/favourite`, { method: 'PUT' });
+        if (!res.ok) throw new Error('Toggle failed');
+        const data = await res.json();
+        currentDocument.favourite = data.favourite;
+        // Update UI immediately
+        const favBtn = document.getElementById('btn-favourite');
+        const favIcon = document.getElementById('fav-icon');
+        const favText = document.getElementById('fav-text');
+        if (data.favourite) {
+            favBtn.classList.add('fav-active');
+            favIcon.textContent = '★';
+            favText.textContent = 'Favourited';
+            showToast('Added to favourites', 'success');
+        } else {
+            favBtn.classList.remove('fav-active');
+            favIcon.textContent = '☆';
+            favText.textContent = 'Favourite';
+            showToast('Removed from favourites', 'info');
+        }
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+function toggleEditMode() {
+    const mnemonicsBlocks = document.querySelectorAll('.bs-list-item__mnemonics');
+    const btn = document.getElementById('btn-edit-toggle');
+    mnemonicsBlocks.forEach(block => {
+        block.style.display = block.style.display === 'none' ? 'block' : 'none';
+    });
+    const isHidden = mnemonicsBlocks[0]?.style.display === 'none';
+    btn.innerHTML = isHidden
+        ? '<span class="icon">✏️</span> Edit'
+        : '<span class="icon">✏️</span> Close Editor';
+}
+
+// ═══ Revisions Modal ═══
+async function openRevisionsModal(docId) {
+    const modal = document.getElementById('modal-revisions');
+    const body = document.getElementById('revisions-body');
+    body.innerHTML = '<p class="text-muted">Loading...</p>';
+    modal.classList.remove('hidden');
+
+    try {
+        const res = await fetch(`/api/documents/${docId}/revisions`);
+        if (!res.ok) throw new Error('Failed to load revisions');
+        const data = await res.json();
+
+        if (!data.revisions || data.revisions.length === 0) {
+            body.innerHTML = '<p class="text-muted">No revision history available.</p>';
+            return;
+        }
+
+        // Render timeline (newest first)
+        const revs = [...data.revisions].reverse();
+        let html = '<ul class="revision-timeline">';
+        revs.forEach(rev => {
+            const time = rev.timestamp ? timeAgo(rev.timestamp) : '';
+            html += `
+                <li class="revision-item">
+                    <div class="revision-dot"></div>
+                    <div class="revision-content">
+                        <div class="rev-number">Revision #${rev.revision}</div>
+                        <div class="rev-summary">${rev.summary || 'No description'}</div>
+                        <div class="rev-time">${time}</div>
+                    </div>
+                </li>
+            `;
+        });
+        html += '</ul>';
+        body.innerHTML = html;
+    } catch (e) {
+        body.innerHTML = `<p class="text-muted">${e.message}</p>`;
+    }
+}
+
+// ═══ Move Modal ═══
+function openMoveModal(doc) {
+    const modal = document.getElementById('modal-move');
+    const grid = document.getElementById('move-book-grid');
+    grid.innerHTML = '';
+
+    for (const [name, profile] of Object.entries(bookProfiles)) {
+        const btn = document.createElement('button');
+        btn.className = `move-book-btn ${name === doc.book ? 'current' : ''}`;
+        btn.innerHTML = `
+            <span class="book-label">${name.replace('_', ' ')}</span>
+            <span class="book-kingdom">${profile.kingdom || ''}</span>
+        `;
+
+        if (name !== doc.book) {
+            btn.addEventListener('click', async () => {
+                await moveDocument(doc.id, name);
+                modal.classList.add('hidden');
+            });
+        }
+
+        grid.appendChild(btn);
+    }
+
+    modal.classList.remove('hidden');
+}
+
+async function moveDocument(id, book) {
+    try {
+        const res = await fetch(`/api/documents/${id}/move?book=${book}`, { method: 'PUT' });
+        if (!res.ok) throw new Error('Move failed');
+        const data = await res.json();
+        showToast(`Moved to ${data.new_book}`, 'success');
+        await loadDocument(id);  // Reload to reflect changes
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
 // ═══ Utilities ═══
+function timeAgo(isoString) {
+    const date = new Date(isoString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
+    const years = Math.floor(months / 12);
+    return `${years} year${years > 1 ? 's' : ''} ago`;
+}
+
 function showToast(msg, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');

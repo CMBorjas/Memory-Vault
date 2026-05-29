@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css?v=3">
+    <link rel="stylesheet" href="/static/styles.css?v=4">
 </head>
 <body class="dark-mode">
 
@@ -36,6 +36,64 @@
         
         <!-- Sidebar -->
         <aside class="bs-sidebar">
+            <div id="doc-sidebar-left" class="hidden" style="margin-bottom: 2rem;">
+                <div class="sidebar-block" style="margin-bottom: 1.5rem;">
+                    <h4 class="bs-nav__heading">Details</h4>
+                    <ul class="detail-list" id="detail-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+
+                <h4 class="bs-nav__heading">Document Actions</h4>
+                <ul class="action-list">
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-edit-toggle">
+                            <span class="icon">✏️</span> Edit
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-copy">
+                            <span class="icon">📋</span> Copy
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-move">
+                            <span class="icon">📁</span> Move
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-revisions">
+                            <span class="icon">🕓</span> Revisions
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-permissions" disabled title="Local-only mode">
+                            <span class="icon">🔒</span> Permissions
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn text-danger" id="btn-delete">
+                            <span class="icon">🗑</span> Delete
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="sidebar-divider"></div>
+
+                <ul class="action-list">
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-favourite">
+                            <span class="icon" id="fav-icon">☆</span> <span id="fav-text">Favourite</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="btn btn-link action-btn" id="btn-export">
+                            <span class="icon">📤</span> Export
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
             <nav class="bs-nav">
                 <h4 class="bs-nav__heading">Navigation</h4>
                 <button class="bs-nav__link bs-nav__link--active" data-view="upload" id="nav-upload">
@@ -119,26 +177,10 @@
                         </div>
                     </div>
                     
-                    <!-- Right Sidebar -->
-                    <aside class="doc-sidebar">
-                        <div class="sidebar-block">
-                            <h4>Actions</h4>
-                            <ul class="action-list">
-                                <li>
-                                    <button class="btn btn-link action-btn" id="btn-export">
-                                        <span class="icon">⇲</span> Export to Obsidian
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="btn btn-link action-btn text-danger" id="btn-delete">
-                                        <span class="icon">🗑</span> Delete
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </aside>
+
                 </div>
             </div>
+
 
             <!-- ═══ Profiles View ═══ -->
             <div class="view card" id="view-profiles">
@@ -154,9 +196,38 @@
         </main>
     </div>
 
+    <!-- ═══ Revisions Modal ═══ -->
+    <div class="modal-overlay hidden" id="modal-revisions">
+        <div class="modal card">
+            <div class="modal__header">
+                <h2>Revision History</h2>
+                <button class="btn btn-link modal__close" id="close-revisions">✕</button>
+            </div>
+            <div class="modal__body" id="revisions-body">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Move Modal ═══ -->
+    <div class="modal-overlay hidden" id="modal-move">
+        <div class="modal card">
+            <div class="modal__header">
+                <h2>Move Document</h2>
+                <button class="btn btn-link modal__close" id="close-move">✕</button>
+            </div>
+            <div class="modal__body">
+                <p class="text-muted" style="margin-bottom: 1rem;">Select a new book for this document:</p>
+                <div class="move-book-grid" id="move-book-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══ Toast Notifications ═══ -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="/static/app.js?v=3"></script>
+    <script src="/static/app.js?v=4"></script>
 </body>
 </html>

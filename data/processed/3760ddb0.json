@@ -251,5 +251,16 @@
         "aesthetic": "Withering/Decaying"
       }
     }
+  ],
+  "updated_at": "2026-05-16T04:48:10.345748",
+  "created_by": "Local User",
+  "favourite": true,
+  "revision": 1,
+  "revisions": [
+    {
+      "revision": 1,
+      "timestamp": "2026-05-16T04:48:10.345748",
+      "summary": "Initial import via PDF ingestion"
+    }
   ]
 }
