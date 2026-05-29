@@ -1,0 +1,255 @@
+{
+  "id": "3760ddb0",
+  "filename": "002_Sybex_comptia-network-study-guide-exam-n10-008.pdf",
+  "book": "Networking",
+  "uploaded_at": "2026-05-16T04:48:10.345748",
+  "section_count": 13,
+  "sections": [
+    {
+      "title": "THE FOLLOWING COMPTIA NETWORK+ EXAM OBJECTIVES ARE COVERED IN THIS CHAPTER:",
+      "content": "\u2713 \ue01e 1.1 Compare and contrast the Open Systems Interconnec- tion (OSI) model layers and encapsulation concepts\n\u2713 \u25a0 OSI Model\n\u2713 \u25a0 Layer 1\u00a0\u2013 Physical\n\u2713 \u25a0 Layer 2\u00a0\u2013 Data link\n\u2713 \u25a0 Layer 3\u00a0\u2013 Network\n\u2713 \u25a0 Layer 4\u00a0\u2013 Transport\n\u2713 \u25a0 Layer 5\u00a0\u2013 Session\n\u2713 \u25a0 Layer 6\u00a0\u2013 Presentation\n\u2713 \u25a0 Layer 7\u00a0\u2013 Application\n\u2713 \u25a0 Data encapsulation and decapsulation within the OSI\nmodel context\n\u2713 \ue01e 1.5 Explain common ports and protocols, their applica- tion, and encrypted alternatives\n\u2713 \u25a0 Connectionless vs. Connection- oriented\n",
+      "page": 1,
+      "key_terms": [
+        "OSI",
+        "Open Systems Interconnec"
+      ],
+      "mnemonics": {
+        "acronym": "Tearing membranes FOLLOWING Continental bridges NETWORK+ EXAM",
+        "visual_anchor": "A bloated salamander sits atop the the following comptia network+ exam objectives are covered in this chapter: architecture, its eyes weeping OSI. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock OSI into your memory.",
+        "logic_link": "Why translucent newts? Because OSI works the same way: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Chapter 2",
+      "content": "Internetworking Models 33\n",
+      "page": 1,
+      "key_terms": [
+        "Internetworking Models"
+      ],
+      "mnemonics": {
+        "acronym": "Continental bridges 2",
+        "visual_anchor": "A bloated salamander sits atop the chapter 2 architecture, its eyes weeping Internetworking Models. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock Internetworking Models into your memory.",
+        "logic_link": "The translucent newts is your brain's trigger for **Internetworking Models** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "The Layered Approach",
+      "content": "Basically, a reference model is a conceptual blueprint of how communications should take place. It addresses all the processes required for effective communication and divides these processes into logical groupings called layers . When a communication system is designed in this manner, it\u2019s known as layered architecture . Think of it like this: Say you and some friends want to start a company. One of the \ue01erst things you\u2019ll do is sit down and think through what tasks must be done, who will do them, the order in which they will be done, and how they relate to each other. Ultimately, you might group these tasks into departments. Let\u2019s say you decide to have a customer service department, an inventory department, and a shipping department. Each of your departments has its own unique tasks, keeping its staff members busy and requiring them to focus only on their own duties. In this scenario, I\u2019m using departments as a metaphor for the layers in a communication system. For things to run smoothly, the staff of each department has to trust and rely heavily on the others to do their jobs and competently handle their unique responsibilities. During your planning sessions, you\u2019ll probably take notes, recording the entire process to facilitate later discussions about standards of operation that will serve as your business blueprint or reference model. Once your business is launched, each department leader will need to develop practical methods to implement their assigned tasks using the speci\ue01ec part of the business model\u2019s blueprint that relates to their branch. These practical methods, or protocols, must be com- piled into a standard operating procedures manual and followed closely. The procedures in your manual will have been included for different reasons and have varying degrees of importance and implementation. If you form a partnership or acquire another company, it will be crucial for its business protocols to either match or be compatible with yours. Similarly, software developers can use a reference model to understand computer commu- nication processes and see exactly what must be accomplished on any one layer and how. In other words, if I need to develop a protocol for a certain layer, I only need to focus on that speci\ue01ec layer\u2019s functions. I don\u2019t need to be concerned with those of any other layer because different protocols will be in place to meet the different layers\u2019 needs. The technical term for this idea is binding . The communication processes that are related to each other are bound, or grouped together, at a particular layer.\n",
+      "page": 3,
+      "key_terms": [],
+      "mnemonics": {
+        "acronym": "Translucent newts Layered Approach",
+        "visual_anchor": "A bloated salamander sits atop the the layered approach architecture, its eyes weeping The Layered Approach. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "Close your eyes. The Ambrosia fills the room, suffocatingly sweet like wilting funeral flowers in an enclosed room. Underneath it, barely detectable, the Ammonia lingers \u2014 sharp and eye-watering like an uncleaned reptile tank. You will not forget The Layered Approach.",
+        "logic_link": "The translucent newts is your brain's trigger for **The Layered Approach** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Advantages of\u00a0Reference Models",
+      "content": "The OSI model is hierarchical, and I\u2019d like to point out that the same bene\ue01ecial characteris- tics can actually apply to any layered model, such as the TCP/IP model. Understand that the central purpose of the OSI model, and all networking models, is to allow different vendors\u2019 networks to interoperate smoothly.\nThe OSI Reference Model 35\nThe OSI\u2019s seven layers are divided into two groups. The top three layers de\ue01ene the rules of how the applications working within host machines communicate with each other as well as with end users. The bottom four layers de\ue01ene how the actual data is transmitted from end to end. Figure\u00a02.2 shows the top three layers and their functions, and Figure\u00a02.3 shows the four lower layers and their functions.\nApplication\nPresentation\nSession\nTransport\nNetwork\nData Link\nPhysical\n\u2022 File, print, message, database, and application services\n\u2022 Data encryption, compression, and translation services\n\u2022 Dialog control\n\u2022 End-to-end connection\n\u2022 Routing\n\u2022 Framing\n\u2022 Physical topology\nF I G U R E \u00a0 2 . 1 Layer functions\nApplication\nPresentation\nSession\n\u2022 Provides a user interface\n\u2022 Keeps different applications\u2019 data separate\n\u2022 Presents data \u2022 Handles processing such as encryption\nF I G U R E \u00a0 2 . 2 The upper layers\nTransport\nNetwork\nData Link\nPhysical\n\u2022 Provides reliable or unreliable delivery \u2022 Performs error correction before retransmit\n\u2022 Moves bits between devices \u2022 Speci\ufb01es voltage, wire speed, and pin-out of cables\n\u2022 Combines packets into bytes and bytes into frames \u2022 Provides access to media using MAC address \u2022 Performs error detection, not correction\n\u2022 Provides logical addressing, which routers use for path determination\nF I G U R E \u00a0 2 . 3 The lower layers\n36 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\nLooking at Figure\u00a02.2, it\u2019s clear that actual users interact with the computer at the Appli- cation layer. It\u2019s also apparent that the upper layers are responsible for applications com- municating between hosts. Remember that none of the upper layers \u201cknow\u201d anything about networking or network addresses. That\u2019s the responsibility of the four bottom layers. Figure\u00a02.3 illustrates that the four bottom layers de\ue01ene how data is transferred through physical media, switches, and routers. These bottom layers also determine how to rebuild a data stream from a transmitting host to a destination host\u2019s application. Okay\u2014 so let\u2019s start at the Application layer and work our way down the stack.\n",
+      "page": 3,
+      "key_terms": [
+        "Transport\nNetwork\nData Link\nPhysical",
+        "Reference Model",
+        "OSI",
+        "TCP",
+        "IP",
+        "Application\nPresentation\nSession",
+        "Application\nPresentation\nSession\nTransport\nNetwork\nData Link\nPhysical"
+      ],
+      "mnemonics": {
+        "acronym": "Advantages of Rotting lilies Models",
+        "visual_anchor": "A bloated salamander sits atop the advantages of\u00a0reference models architecture, its eyes weeping Transport\nNetwork\nData Link\nPhysical. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "Close your eyes. The Ambrosia fills the room, suffocatingly sweet like wilting funeral flowers in an enclosed room. Underneath it, barely detectable, the Ammonia lingers \u2014 sharp and eye-watering like an uncleaned reptile tank. You will not forget Transport\nNetwork\nData Link\nPhysical.",
+        "logic_link": "The translucent newts is your brain's trigger for **Transport\nNetwork\nData Link\nPhysical** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "The Application Layer",
+      "content": "The Application layer of the OSI model marks the spot where users actually communi- cate or interact with the computer. Technically, users communicate with the network stack through application processes, interfaces, or application programming interfaces (APIs) that connect the application in use to the operating system of the computer. The Applica- tion layer chooses and determines the availability of communicating partners along with the resources necessary to make their required connections. It coordinates partnering applica- tions and forms a consensus on procedures for controlling data integrity and error recovery. The Application layer comes into play only when it\u2019s apparent that access to the network will be needed soon. Take the case of Chrome or Firefox. You could uninstall every trace of networking components from a system, such as TCP/IP, the network card, and so on, and you could still use Chrome to view a local HTML document without a problem. But things would de\ue01enitely get messy if you tried to do something like view an HTML document that had to be retrieved using HTTP or nab a \ue01ele with FTP or TFTP because Chrome or Firefox responds to requests like those by attempting to access the Application layer. So what\u2019s hap- pening is that the Application layer acts as an interface between the application program\u2014 which isn\u2019t part of the layered structure\u2014 and the next layer down by providing ways for the application to send information down through the protocol stack. In other words, browsers don\u2019t reside within the Application layer\u2014 it interfaces with Application layer protocols when it needs to deal with remote resources. The Application layer is also responsible for identifying and establishing the availability of the intended communication partner and determining whether suf\ue01ecient resources for the requested communication exist. These tasks are important because computer applications sometimes require more than just desktop resources. Often, they unite communicating components from more than one network application. Prime examples are \ue01ele transfers and email as well as enabling remote access, network- management activities, and client- server processes like printing and information location. Many network applications provide services for communication over enterprise networks, but for present and future internetworking, the need is fast developing to reach beyond the limitations of current physical networking.\n40 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\n3. Segments are sequenced back into their proper order upon arrival at their destination.\n4. A manageable data flow is maintained in order to avoid congestion, overloading, and data loss.\nOkay, so what happens when a machine receives a \ue01dood of datagrams too quickly for it to process? It stores them in a memory section called a buffer . But this buffering tactic can only solve the problem if the datagrams are part of a small burst. If not, and the datagram deluge continues, a device\u2019s memory will eventually be exhausted, its \ue01dood capacity will be exceeded, and it will react by discarding any additional datagrams that arrive like a dam spilling over! This sounds pretty bad, and it would be if it weren\u2019t for the transport function of net- work \ue01dood- control that actually works really well. But how? Well, instead of just dumping resources and allowing data to be lost, the transport can issue a \u201cnot ready\u201d indicator to the sender, or source, of the \ue01dood, as shown in Figure\u00a02.5.\nThis mechanism is similar to a stoplight, signaling the sending device to stop transmit- ting segment traf\ue01ec to its overwhelmed peer. After the peer machine\u2019s receiver processes the segments abounding in its memory reservoir (its buffer), it sends out a \u201cready\u201d transport indicator. When the machine waiting to transmit the rest of its datagrams receives this \u201cgo\u201d indictor, it resumes its transmission.\nSender\nTransmit\nTransmit\nReceiver\nBuffer full\nNot ready \u2013 STOP!\nSegments processed\nGO!\nF I G U R E \u00a0 2 . 5 Transmitting segments with flow control\n42 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\n",
+      "page": 6,
+      "key_terms": [
+        "HTML",
+        "OSI",
+        "TCP",
+        "The Application",
+        "IP",
+        "The Applica"
+      ],
+      "mnemonics": {
+        "acronym": "Tearing membranes Application Layer",
+        "visual_anchor": "A bloated salamander sits atop the the application layer architecture, its eyes weeping HTML. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "Close your eyes. The Ambrosia fills the room, suffocatingly sweet like wilting funeral flowers in an enclosed room. Underneath it, barely detectable, the Ammonia lingers \u2014 sharp and eye-watering like an uncleaned reptile tank. You will not forget HTML.",
+        "logic_link": "Remember: translucent newts = HTML. The connection: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Acknowledgments",
+      "content": "Reliable data delivery ensures the integrity of a data stream being sent from one machine to the other through a fully functional data link. It guarantees that the data won\u2019t be duplicated or lost. This is achieved through something called positive acknowledgment with retransmis- sion \u2014a technique that requires a receiving machine to communicate with the transmitting source by sending an acknowledgment message back to the sender when it receives data. The sender documents each segment it sends and waits for this acknowledgment before send- ing the next segment. When it sends a segment, the transmitting machine starts a timer and retransmits if it expires before an acknowledgment is returned from the receiving end. In Figure\u00a02.7, the sending machine transmits segments 1, 2, and 3. The receiving node acknowledges it has received them by requesting segment 4. When it receives the acknowl- edgment, the sender then transmits segments 4, 5, and 6. If segment 5 doesn\u2019t make it to the destination, the receiving node acknowledges that event with a request for the segment to be resent. The sending machine will then resend the lost segment and wait for an acknowledg- ment, which it must receive in order to move on to the transmission of segment 7. The Transport layer doesn\u2019t need to use a connection- oriented service. That choice is up to the application developer. It\u2019s safe to say that if you\u2019re connection- oriented, meaning that you\u2019ve created a virtual circuit, you\u2019re using TCP. If you aren\u2019t setting up a virtual circuit, then you\u2019re using UDP and are considered connectionless.\nSender\nSend 1\nSend 1\nSend 2\nSend 2\nSend 3\nSend 4\nReceive 1 Window size of 1\nWindow size of 3\nReceive 2\nACK 1\nACK 2\nACK 4\nReceiver\nF I G U R E \u00a0 2 . 6 Windowing\n44 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\nTwo types of packets are used at the Network layer:\nData Packets These are used to transport user data through the internetwork. Proto- cols used to support data traf\ue01ec are called routed protocols . Two examples of routed protocols are Internet Protocol (IP) and Internet Protocol version 6 (IPv6), which you\u2019ll learn all about coming up in Chapter\u00a07, \u201cIP Addressing.\u201d\nRoute- Update Packets These are used to update neighboring routers about the net- works connected to all routers within the internetwork. Protocols that send route- update packets are called routing protocols, and some common ones are Routing Information Protocol (RIP), RIPv2, Enhanced Interior Gateway Routing Protocol (EIGRP), and Open Shortest Path First (OSPF). Route- update packets are used to help build and maintain routing tables on each router.\nFigure\u00a02.8 shows a routing table. The routing table used by a router includes the follow- ing information:\nNetwork Addresses These are protocol- speci\ue01ec network addresses. A router must maintain a routing table for individual routing protocols because each routing protocol keeps track of a network that includes different addressing schemes, like IP and IPv6. Think of it as a street sign in each of the different languages spoken by the residents who live on a particular street. If there were American, Spanish, and French folks on a street named Cat, the sign would read Cat/Gato/Chat.\n1.0\n1.1\n1.3 3.3\n3.0\n3.1\n3.2\nRouting table\nNET\n1\n2\n3\nE0\nS0\nS0\n0\n0\n1\nINT Metric\n2.1 2.2\nS0 S0 E0 E0\n1.2\nRouting table\nNET\n1\n2\n3\nS0\nS0\nE0\n1\n0\n0\nINT Metric\nF I G U R E \u00a0 2 . 8 Routing table used in a router\nThe OSI Reference Model 47\nWhen you check it out, notice that the IEEE 802.2 standard is not only used in conjunction with the other IEEE standards, it also adds functionality to those standards. The IEEE Ethernet Data Link layer has two sublayers:\nMedia Access Control (MAC) De\ue01enes how packets are placed on the media. Conten- tion media access is \u201c\ue01erst come, \ue01erst served\u201d access, where everyone shares the same bandwidth\u2014 hence the name. Physical addressing is de\ue01ened here, as are logical topol- ogies. What\u2019s a logical topology? It\u2019s the signal path through a physical topology. Line discipline, error noti\ue01ecation (not correction), ordered delivery of frames, and optional \ue01dow control can also be used at this sublayer.\nLogical Link Control (LLC) Responsible for identifying Network layer protocols and then encapsulating them, an LLC header tells the Data Link layer what to do with a packet once a frame is received. It works like this: A host receives a frame and looks in the LLC header to \ue01end out where the packet is destined\u2014 say, the IP protocol at the Net- work layer. The LLC can also provide \ue01dow control and sequencing of control bits.\nProject 802\nOne of the major components of the Data Link layer is the result of the IEEE\u2019s 802 subcom- mittees and their work on standards for local area and metropolitan area networks (LANs/ MANs). The committee met in February 1980, so they used the 80 from 1980 and the 2 from the second month to create the name Project 802. The designation for an 802 standard always includes a dot (.) followed by either a single or a double digit. These numeric digits specify particular categories within the 802 standard. These standards are listed in the fol- lowing table.\nStandard Topic\n802.1 LAN/MAN Management (and Media Access Control Bridges)\n802.2 Logical Link Control\n802.3 CSMA/CD (Ethernet)\n802.5 802.3 802.2\nLogical Link Control (LLC)\nMedia Access Control (MAC)\nF I G U R E \u00a0 2 . 10 Data Link layer\ncontinues\n48 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\nStandard Topic\n802.4 Token Passing Bus\n802.5 Token Passing Ring\n802.6 Distributed Queue Dual Bus (DQDB) Metropolitan Area Network (MAN)\n802.7 Broadband Local Area Networks\n802.8 Fiber- Optic LANs and MANs\n802.9 Isochronous LANs\n802.10 LAN/MAN Security\n802.11 Wireless LAN\n802.12 Demand Priority Access Method\n802.15 Wireless Personal Area Network\n802.16 Wireless Metropolitan Area Network (also called WiMAX)\n802.17 Resilient Packet Ring\nNote that 802.1, 802.3, 802.11, and 802.15 are the only Active 802 standards. The others are either Disbanded or Hibernating.\nFrom this sidebar, you just need to remember that 802.3 calls out anything having to do with Ethernet, and 802.11 is anything wireless.\n",
+      "page": 12,
+      "key_terms": [
+        "UDP",
+        "The Open Systems Interconnection Specifications\nTwo",
+        "TCP",
+        "The Transport",
+        "In Figure",
+        "ACK",
+        "Sender\nSend"
+      ],
+      "mnemonics": {
+        "acronym": "Acknowledgments",
+        "visual_anchor": "Picture a tree frog clinging to the acknowledgments architecture, its toxic skin secreting UDP in fluorescent droplets that burn through the surface.",
+        "scent_anchor": "Breathe in: the Ambrosia is overwhelming, suffocatingly sweet like wilting funeral flowers in an enclosed room. Breathe out: the Ammonia coats your throat, sharp and eye-watering like an uncleaned reptile tank. This is UDP.",
+        "logic_link": "Remember: translucent newts = UDP. The connection: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "The Physical Layer",
+      "content": "Finally, we\u2019re hitting bottom. Well, not in a bad way\u2014 we\u2019ve now arrived at the Physical layer , which does two important things: it sends bits and receives bits. Bits come only in values of 1 or 0\u2014 a Morse code with numerical values. The Physical layer communicates directly with the various types of actual communication media. Different kinds of media represent these bit values in different ways. Some use audio tones, and others employ state transitions \u2014 changes in voltage from high to low and low to high. Speci\ue01ec protocols are needed for each type of media to describe the proper bit patterns to be used, how data is encoded into media signals, and the various qualities of the physical media\u2019s attachment interface. The Physical layer speci\ue01ees the electrical, mechanical, procedural, and functional require- ments for activating, maintaining, and deactivating a physical link between end systems. This layer is also where you identify the interface between the data terminal equipment (DTE)\ncontinued\nIntroduction to\u00a0Encapsulation 49\nand the data communication equipment (DCE) . (Some older phone company employees still call DCE data circuit- terminating equipment.) The DCE is usually located at the customer, whereas the DTE is the attached device. The services available to the DTE are most often accessed via the DCE device, which is a modem or channel service unit/data service unit (CSU/DSU) . The Physical layer\u2019s connectors and different physical topologies are de\ue01ened by the stan- dards, allowing disparate systems to communicate. Finally, the Physical layer speci\ue01ees the layout of the transmission media, otherwise known as its topology. A physical topology describes the way the cabling is physically laid out, as opposed to the logical topology that we just talked about in the section \u201cThe Data Link Layer.\u201d The various physical topologies include bus, star, ring, and mesh and were described in Chapter\u00a01, \u201cIntroduction to Networks.\u201d\n",
+      "page": 18,
+      "key_terms": [
+        "The Data Link Layer",
+        "The Physical",
+        "DCE",
+        "DTE"
+      ],
+      "mnemonics": {
+        "acronym": "Translucent newts Physical Layer",
+        "visual_anchor": "Picture a tree frog clinging to the the physical layer architecture, its toxic skin secreting The Data Link Layer in fluorescent droplets that burn through the surface.",
+        "scent_anchor": "Breathe in: the Ambrosia is overwhelming, suffocatingly sweet like wilting funeral flowers in an enclosed room. Breathe out: the Ammonia coats your throat, sharp and eye-watering like an uncleaned reptile tank. This is The Data Link Layer.",
+        "logic_link": "The translucent newts is your brain's trigger for **The Data Link Layer** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Introduction to\u00a0Encapsulation",
+      "content": "When a host transmits data across a network to another device, the data goes through encapsulation : It\u2019s wrapped with protocol information at each layer of the OSI model. Each layer communicates only with its peer layer on the receiving device. To communicate and exchange information, each layer uses protocol data units (PDUs) . These hold the control information attached to the data at each layer of the model. They\u2019re usually attached to the header in front of the data \ue01eeld but can also be in the trailer, or end, of it. At a transmitting device, the data- encapsulation method works like this:\n1. User information is converted to data for transmission on the network.\n2. Data is converted to segments, and a reliable connection is set up between the transmit- ting and receiving hosts.\n3. Segments are converted to packets or datagrams, and a logical address is placed in the header so each packet can be routed through an internetwork. A packet carries a seg- ment of data.\n4. Packets or datagrams are converted to frames for transmission on the local network. Hardware (Ethernet) addresses are used to uniquely identify hosts on a local network segment. Frames carry packets.\n5. Frames are converted to bits, and a digital encoding and clocking scheme is used.\nFigure\u00a02.11 shows how user data is encapsulated at a transmitting host. Before we move onto the next chapter, how does step\u00a05\u00a0work when frames are converted to bits and an encoding and clocking scheme is used? This is called a modulation technique and we\u2019ll end the chapter on this discussion.\n50 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\n",
+      "page": 19,
+      "key_terms": [
+        "OSI",
+        "The Open Systems Interconnection Specifications"
+      ],
+      "mnemonics": {
+        "acronym": "Introduction Translucent newts Encapsulation",
+        "visual_anchor": "Imagine OSI as a translucent newt whose skin is withering/decaying, stretched across the introduction to\u00a0encapsulation architecture. Its belly glows with data packets visible through decaying membrane.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock OSI into your memory.",
+        "logic_link": "Why translucent newts? Because OSI works the same way: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Modulation Techniques",
+      "content": "In networks, modulation is the process of varying one or more properties of a waveform, called the carrier signal , with a signal that typically contains information to be transmitted. Modulation of a waveform transforms a baseband (Ethernet or wireless) message signal into a passband signal (a passband, also known as a bandpass \ue01eltered signal, is the range of frequencies or wavelengths that can pass through a \ue01elter without being attenuated). In current networks, modulation takes a digital or analog signal and puts it in another signal that can be physically transmitted. A modulator is a device that performs modulation of a signal and a demodulator is a device that performs demodulation, the inverse of modulation. We typically just call these modems (from modulator\u2013demodulator), which can perform both operations. The purpose of digital modulation is to transfer a digital bit stream over an analog bandpass channel. (A good example would be data transmitting over the public switched telephone network, where a bandpass \ue01elter limits the frequency range to 300\u20133400\u00a0Hz, or over a limited radio frequency band.) The purpose of an analog modulation is to transfer an analog baseband (or lowpass) signal (for example, an audio signal, wireless network, or TV signal) over an analog bandpass channel at a different frequency. Analog and digital modulation use something called frequency- division multiplexing (FDM), where several low- pass information signals are transferred simultaneously over the same shared physical network, using separate passband channels (several different frequencies).\nUpper-Layer Data\nUpper-Layer Data Segment\nPDU\nPacket\nFrame\nBits\nTCP Header\nIP Header\nLLC Header\nMAC Header\nSegment\nPacket\nPacket\n0101110101001000010\nFCS\nFCS\nApplication\nPresentation\nSession\nTransport\nNetwork\nData Link\nPhysical\nF I G U R E \u00a0 2 . 11 Data encapsulation\nExam Essentials 51\nThe digital baseband modulation methods found in our Ethernet networks, and also known as line coding, are used to transfer a digital bit stream over a baseband channel. Base- band means that the signal being modulated used the complete available bandwidth. Time- division multiplexing (TDM) is a method of transmitting and receiving many independent signals over a common signal path by means of synchronized network devices at each end of the transmission line so that each signal appears on the line only a fraction of time in an alternating pattern. The receiving end demultiplexes the signal back to its original form. After you learn more foundational material about networking in the next few chapters, I\u2019ll come back to the encapsulation method and discuss it further in Chapter\u00a06.\n",
+      "page": 20,
+      "key_terms": [
+        "PDU",
+        "Layer Data Segment",
+        "Layer Data\nUpper",
+        "FDM",
+        "TCP",
+        "Packet\nFrame\nBits",
+        "TV",
+        "Header\nSegment\nPacket\nPacket"
+      ],
+      "mnemonics": {
+        "acronym": "Modulation Translucent newts",
+        "visual_anchor": "Picture a tree frog clinging to the modulation techniques architecture, its toxic skin secreting PDU in fluorescent droplets that burn through the surface.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock PDU into your memory.",
+        "logic_link": "Why translucent newts? Because PDU works the same way: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Summary",
+      "content": "You\u2019re now armed with a ton of fundamental information. You\u2019re set to build on it and are well on your way to certi\ue01ecation. Let\u2019s take a minute to go over what you\u2019ve learned in this chapter. We started by discuss- ing internetworking models and the advantages of having them. I then discussed the OSI model\u2014 the seven- layer model used to help application developers design applications that can run on any type of system or network. Each layer has its special jobs and select respon- sibilities within the model to ensure that solid, effective communications do, in fact, occur. I provided you with complete details of each layer and discussed how you need to view the speci\ue01ecations of the OSI model. I also discussed the encapsulation method used in networking. Encapsulation is a highly important concept to understand, and I\u2019ll continue to discuss it throughout this book. This chapter \ue01enished with a brief introduction to modulation of digital and analog signals.\n",
+      "page": 21,
+      "key_terms": [
+        "OSI"
+      ],
+      "mnemonics": {
+        "acronym": "Summary",
+        "visual_anchor": "A bloated salamander sits atop the summary architecture, its eyes weeping OSI. Each blink sends signals through its withering nervous system.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock OSI into your memory.",
+        "logic_link": "The translucent newts is your brain's trigger for **OSI** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Exam Essentials",
+      "content": "Remember the\u00a0OSI layers. You absolutely must remember and understand the seven layers of the OSI model as well as what function each layer provides. The Application, Presenta- tion, and Session layers are upper layers and are responsible for communicating from a user interface to an application. The Transport layer provides segmentation, sequencing, and virtual circuits. The Network layer provides logical network addressing and routing through an internetwork. The Data Link layer provides framing and placing of data on the network medium. The Physical layer is responsible for taking 1s and 0s and encoding them into a digital signal for transmission on the network segment.\nKnow the\u00a0sublayers of\u00a0the Data Link layer. In addition to the OSI layers, knowing that this is the only layer that has sublayers and the functions of those sublayers is extremely important. The Data Link layer has two sublayers: LLC and MAC. The LLC sublayer is\n52 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\nresponsible primarily for the multiplexing of Network layer protocols. The MAC sublayer is responsible for physical addressing and determining the appropriate time to place data on the network.\nKnow the\u00a0devices that operate at each layer of\u00a0the OSI model. Hubs and repeaters see only bits, making them layer 1 devices. Because all networking devices have physical con- nectivity to the network, they all operate at layer 1, but hubs and repeaters operate only at this layer, whereas other devices also work in higher layers. Nevertheless, we generally con- sider that a device operates at the highest layer it supports; that layer\u2019s functionality is the main reason we implement the device on the network. For example, switches and bridges are considered layer 2 devices because they understand and make decisions based on layer 2 addresses. Routers are layer 3 devices for a similar reason; they deal with layer 3 addresses. Networking devices, such as workstations that run applications, are said to operate at the Application layer (or you may hear that they operate at all layers) because they must include Application layer protocols that offer services to networked applications.\n",
+      "page": 21,
+      "key_terms": [
+        "LLC",
+        "OSI",
+        "The Application",
+        "The Transport",
+        "The Network",
+        "The Data Link"
+      ],
+      "mnemonics": {
+        "acronym": "Exam Essentials",
+        "visual_anchor": "Imagine LLC as a translucent newt whose skin is withering/decaying, stretched across the exam essentials architecture. Its belly glows with data packets visible through decaying membrane.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock LLC into your memory.",
+        "logic_link": "Why translucent newts? Because LLC works the same way: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Written Lab",
+      "content": "You can \ue01end the answers to the written labs in Appendix A.\n1. Which layer chooses and determines the availability of communicating partners along with the resources necessary to make the connection, coordinates partnering applications, and forms a consensus on procedures for controlling data integrity and error recovery?\n2. Which layer is responsible for converting frames from the Data Link layer into electrical signals?\n3. At which layer is routing implemented, enabling connections and path selection between two end systems?\n4. Which layer defines how data is formatted, presented, encoded, and converted?\n5. Which layer is responsible for creating, managing, and terminating sessions between applications?\n6. Which layer manages the transmission of data across a physical link and is primarily concerned with physical addressing and the ordered delivery of frames?\n7. Which layer is used for reliable communication between end nodes over the network and provides mechanisms for establishing, maintaining, and terminating virtual circuits as well as controlling the flow of information?\n8. Which layer provides logical addressing that routers use for path determination?\n9. Which layer specifies voltage, wire speed, and connector pin- outs and moves bits bet- ween\u00a0devices?\n10. Which layer combines bits into bytes and bytes into frames and uses MAC addressing?\nReview Questions 53\n",
+      "page": 22,
+      "key_terms": [
+        "Data Link",
+        "MAC",
+        "Review Questions"
+      ],
+      "mnemonics": {
+        "acronym": "Written Lab",
+        "visual_anchor": "Picture a tree frog clinging to the written lab architecture, its toxic skin secreting Data Link in fluorescent droplets that burn through the surface.",
+        "scent_anchor": "The Ambrosia hits first \u2014 suffocatingly sweet like wilting funeral flowers in an enclosed room. Then the Ammonia creeps in \u2014 sharp and eye-watering like an uncleaned reptile tank. Together they lock Data Link into your memory.",
+        "logic_link": "The translucent newts is your brain's trigger for **Data Link** \u2014 just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    },
+    {
+      "title": "Review Questions",
+      "content": "You can \ue01end the answers to the review questions in Appendix B.\n1. Host 1 sent a SYN packet to Host 2. What will Host 2 send in response?\nA. ACK\nB. NAK\nC. SYN/ACK\nD. SYN/NAK\nE. SYN\n2. TCP and UDP reside at which layer of the OSI model?\nA. 1\nB. 2\nC. 3\nD. 4\n3. Which layer of the OSI model provides an entry point for programs to access the network infrastructure?\nA. Application\nB. Transport\nC. Network\nD. Physical\n4. You are connected to a server on the Internet and you click a link on the server and receive a time- out message. What layer could be the source of this message?\nA. Application\nB. Transport\nC. Network\nD. Physical\n5. Which layer of the OSI model is responsible for code and character- set conversion as well as recognizing data formats?\nA. Application\nB. Presentation\nC. Session\nD. Network\n54 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\n6. At which layers of the OSI model do bridges, hubs, and routers primarily operate, respectively?\nA. Physical, Physical, Data Link\nB. Data Link, Data Link, Network\nC. Data Link, Physical, Network\nD. Physical, Data Link, Network\n7. Which layer of the OSI model is responsible for converting data into signals appropriate for the transmission medium?\nA. Application\nB. Network\nC. Data Link\nD. Physical\n8. A receiving host has failed to receive all the segments that it should acknowledge. What can the host do to improve the reliability of this communication session?\nA. Send a different source port number.\nB. Restart the virtual circuit.\nC. Decrease the sequence number.\nD. Decrease the window size.\n9. Which layer 1 devices can be used to enlarge the area covered by a single LAN segment? (Choose two.)\nA. Firewall\nB. NIC\nC. Hub\nD. Repeater\nE. RJ- 45 transceiver\n10. Segmentation of a data stream happens at which layer of the OSI model?\nA. Physical\nB. Data Link\nC. Network\nD. Transport\n11. When data is encapsulated, which is the correct order?\nA. Data, frame, packet, segment, bits\nB. Segment, data, packet, frame, bits\nC. Data, segment, packet, frame, bits\nD. Data, segment, frame, packet, bits\nReview Questions 55\n12. What are two purposes for segmentation with a bridge? (Choose two.)\nA. To add more broadcast domains\nB. To create more collision domains\nC. To add more bandwidth for users\nD. To allow more broadcasts for users\n13. Acknowledgments, sequencing, and flow control are characteristic of which OSI layer?\nA. Layer 2\nB. Layer 3\nC. Layer 4\nD. Layer 7\n14. Which of the following is true regarding sequencing and acknowledgments? (Choose all that apply.)\nA. The segments delivered are acknowledged back to the sender upon their reception.\nB. If a segment is not received, the virtual circuit must be restarted from the beginning at a slower transmit interval.\nC. Any segments not acknowledged are retransmitted.\nD. Segments are sequenced back into their proper order upon arrival at their destination.\nE. All segments are retransmitted on time slot intervals.\n15. What is the purpose of flow control?\nA. To ensure that data is retransmitted if an acknowledgment is not received\nB. To reassemble segments in the correct order at the destination device\nC. To provide a means for the receiver to govern the amount of data sent by the sender\nD. To regulate the size of each segment\n16. At which layer of the OSI model would you find IP?\nA. Transport\nB. Network\nC. Data Link\nD. Physical\n17. Of the following, which is the highest layer in the OSI model?\nA. Transport\nB. Session\nC. Network\nD. Presentation\n56 Chapter 2 \u25a0 The Open Systems Interconnection Specifications\n18. Routers perform routing at which OSI layer?\nA. Physical\nB. Data Link\nC. Network\nD. Transport\nE. Application\n19. Which of the following mnemonic devices can you use to remember the first letter of the name of each layer of the OSI model in the proper order?\nA. All People Seem To Need Processed Data.\nB. Always Should People Never Threaten Dog Police.\nC. Please Do Not Throw Sausage Pizza Away.\nD. All Day People Should Try New Professions.\n20. Which IEEE standard specifies the protocol for CSMA/CD?\nA. 802.2\nB. 802.3\nC. 802.5\nD. 802.11\n",
+      "page": 23,
+      "key_terms": [
+        "Data Link",
+        "SYN",
+        "The Open Systems Interconnection Specifications",
+        "ACK",
+        "NAK"
+      ],
+      "mnemonics": {
+        "acronym": "Rotting lilies Questions",
+        "visual_anchor": "Picture a tree frog clinging to the review questions architecture, its toxic skin secreting Data Link in fluorescent droplets that burn through the surface.",
+        "scent_anchor": "Close your eyes. The Ambrosia fills the room, suffocatingly sweet like wilting funeral flowers in an enclosed room. Underneath it, barely detectable, the Ammonia lingers \u2014 sharp and eye-watering like an uncleaned reptile tank. You will not forget Data Link.",
+        "logic_link": "Why translucent newts? Because Data Link works the same way: just as translucent newts withering/decaying, so does this concept operate.",
+        "kingdom": "Amphibians",
+        "aesthetic": "Withering/Decaying"
+      }
+    }
+  ]
+}
