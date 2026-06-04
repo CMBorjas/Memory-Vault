@@ -132,6 +132,111 @@ h1, h2, h3, h4 {
   background: #155724;
 }
 
+/* ═══ Edit Action Bar ═══ */
+.edit-action-bar {
+  background-color: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 90;
+}
+.edit-action-bar__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.edit-action-bar__status {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ═══ Editing Mode Overrides ═══ */
+body.editing-mode .bs-sidebar {
+  display: none !important;
+}
+body.editing-mode .bs-content {
+  padding: 2rem max(2rem, 15%);
+}
+body.editing-mode .bs-breadcrumb {
+  display: none;
+}
+
+/* ═══ Formatting Toolbar ═══ */
+.formatting-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: #232528;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 0.25rem;
+}
+
+.toolbar-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  border-radius: 3px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: #4A4D55;
+}
+
+.toolbar-select {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  padding: 0.35rem;
+  border-radius: 3px;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toolbar-select:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: #4A4D55;
+}
+.toolbar-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
 /* ═══ Main Layout ═══ */
 .bs-container {
   display: flex;

@@ -72,6 +72,9 @@ function switchView(viewId) {
             docSidebar.classList.remove('hidden');
         } else {
             docSidebar.classList.add('hidden');
+            document.body.classList.remove('editing-mode');
+            const actionBar = document.getElementById('edit-action-bar');
+            if (actionBar) actionBar.classList.add('hidden');
         }
     }
 }
@@ -268,7 +271,57 @@ function renderDocument() {
     document.getElementById('breadcrumb-title').textContent = displayTitle;
     
     document.getElementById('doc-header').innerHTML = `
-        <h1>${displayTitle}</h1>
+        <h1 id="doc-title-display">${displayTitle}</h1>
+        <input type="text" id="doc-title-input" class="hidden" value="${displayTitle}" style="font-size: 2.5rem; width: 100%; border-radius: 4px; padding: 0.5rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 400; color: #ffffff; background: var(--bg-hover); border: 1px solid var(--border-color);">
+        
+        <div id="wysiwyg-toolbar" class="hidden formatting-toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Undo">↩</button>
+                <button class="toolbar-btn" title="Redo">↪</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <select class="toolbar-select">
+                    <option>Paragraph</option>
+                    <option>Heading 1</option>
+                    <option>Heading 2</option>
+                    <option>Heading 3</option>
+                </select>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" style="font-weight: bold;" title="Bold">B</button>
+                <button class="toolbar-btn" style="font-style: italic;" title="Italic">I</button>
+                <button class="toolbar-btn" style="text-decoration: underline;" title="Underline">U</button>
+                <button class="toolbar-btn" title="Text Color">A<span style="font-size: 0.6em; margin-left: 2px;">▼</span></button>
+                <button class="toolbar-btn" title="Background Color">🖌<span style="font-size: 0.6em; margin-left: 2px;">▼</span></button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Align Left">≣</button>
+                <button class="toolbar-btn" title="Align Center">≡</button>
+                <button class="toolbar-btn" title="Align Right">≣</button>
+                <button class="toolbar-btn" title="Justify">▤</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Bullet List">•</button>
+                <button class="toolbar-btn" title="Numbered List">1.</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Link">🔗</button>
+                <button class="toolbar-btn" title="Table">▦</button>
+                <button class="toolbar-btn" title="Image">🖼</button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Code Block">&lt;/&gt;</button>
+                <button class="toolbar-btn" title="Help">?</button>
+                <button class="toolbar-btn" title="Fullscreen">⛶</button>
+            </div>
+        </div>
+
         <p class="text-muted" style="margin-bottom: 2rem;">Processed via Anti-Gravity Mnemonic Engine</p>
     `;
 
@@ -367,6 +420,9 @@ function renderDocument() {
     document.getElementById('btn-favourite').onclick = () => toggleFavourite(doc.id);
     document.getElementById('btn-edit-toggle').onclick = () => toggleEditMode();
 
+    document.getElementById('btn-edit-back').onclick = () => toggleEditMode();
+    document.getElementById('btn-edit-close').onclick = () => toggleEditMode();
+
     // Modal close buttons
     document.getElementById('close-revisions').onclick = () => document.getElementById('modal-revisions').classList.add('hidden');
     document.getElementById('close-move').onclick = () => document.getElementById('modal-move').classList.add('hidden');
@@ -413,6 +469,24 @@ async function regenerateMnemonics(idx) {
         currentDocument.sections[idx].user_edited = false;
         renderDocument();
         showToast('Regenerated new mnemonics', 'success');
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function saveDocumentTitle(newTitle) {
+    try {
+        const res = await fetch(`/api/documents/${currentDocument.id}/title`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle })
+        });
+        if (!res.ok) throw new Error('Failed to update title');
+        
+        currentDocument.filename = newTitle;
+        currentDocument.title = newTitle;
+        renderDocument(); 
+        showToast('Title updated', 'success');
     } catch (e) {
         showToast(e.message, 'error');
     }
@@ -491,13 +565,42 @@ async function toggleFavourite(id) {
 function toggleEditMode() {
     const mnemonicsBlocks = document.querySelectorAll('.bs-list-item__mnemonics');
     const btn = document.getElementById('btn-edit-toggle');
+    
+    const isCurrentlyHidden = mnemonicsBlocks[0]?.style.display === 'none' || mnemonicsBlocks[0]?.style.display === '';
+    const turnOn = isCurrentlyHidden;
+
     mnemonicsBlocks.forEach(block => {
-        block.style.display = block.style.display === 'none' ? 'block' : 'none';
+        block.style.display = turnOn ? 'block' : 'none';
     });
-    const isHidden = mnemonicsBlocks[0]?.style.display === 'none';
-    btn.innerHTML = isHidden
-        ? '<span class="icon">✏️</span> Edit'
-        : '<span class="icon">✏️</span> Close Editor';
+
+    const body = document.body;
+    const actionBar = document.getElementById('edit-action-bar');
+    const titleDisplay = document.getElementById('doc-title-display');
+    const titleInput = document.getElementById('doc-title-input');
+    const wysiwygToolbar = document.getElementById('wysiwyg-toolbar');
+    
+    if (turnOn) {
+        body.classList.add('editing-mode');
+        if (actionBar) actionBar.classList.remove('hidden');
+        if (btn) btn.innerHTML = '<span class="icon">✏️</span> Close Editor';
+        if (titleDisplay) titleDisplay.classList.add('hidden');
+        if (titleInput) titleInput.classList.remove('hidden');
+        if (wysiwygToolbar) wysiwygToolbar.classList.remove('hidden');
+    } else {
+        body.classList.remove('editing-mode');
+        if (actionBar) actionBar.classList.add('hidden');
+        if (btn) btn.innerHTML = '<span class="icon">✏️</span> Edit';
+        if (titleDisplay) titleDisplay.classList.remove('hidden');
+        if (wysiwygToolbar) wysiwygToolbar.classList.add('hidden');
+        if (titleInput) {
+            titleInput.classList.add('hidden');
+            const newTitle = titleInput.value.trim();
+            const oldTitle = currentDocument.filename || currentDocument.title;
+            if (newTitle && newTitle !== oldTitle) {
+                saveDocumentTitle(newTitle);
+            }
+        }
+    }
 }
 
 // ═══ Revisions Modal ═══

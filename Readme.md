@@ -19,7 +19,7 @@ The system maintains a dual-state:
 ### 1. The Mnemonic Engine
 A containerized FastAPI application (`mnemonic_engine/`) that serves as the heart of the system.
 * **PDF Import:** Ingests raw textbook PDFs and splits them into logical sections based on font-size heuristics.
-* **Mnemonic Generation:** Uses Jinja2 templates and configurable profiles to generate unique acronyms, visual anchors, and scent profiles for each section.
+* **Mnemonic Generation:** Uses Jinja2 templates and configurable profiles to generate unique acronyms, visual anchors, and scent profiles for each Chapter, subsection, and key terms within each section.
 * **Web GUI:** A premium dark-themed interface for uploading PDFs, reviewing generated mnemonics, editing them interactively, and exporting to the vault.
 
 ### 2. The Locus Vault
@@ -44,14 +44,29 @@ Each book/module in the vault is assigned a biological kingdom and a sensory pro
 | **Cybersecurity** | Fungi | Parasitic/Spores | Truffle + Damp Copper |
 | **Algorithms** | Cephalopods | Shifting/Ink-Cloud | Brine + Iodine |
 | **OS** | Arachnids | Webbing/Lurking | Petrichor + Formaldehyde |
+| **etc..**| etc.. | etc.. | etc.. |
 
-> ### Example: Wide Area Networks (WAN)
+## Example Document Generation (Locus View)
+
+> ---
+> # Chapter 3: Wide Area Network (W.A.N.)
+>
+>> book: networking \
+>> cssclasses: ecosystem-aquatic
+> ---
 > 
-> **Mnemonic:** Withering Ambrosia Newts
-> **Visual:** Translucent amphibians bridging continents; skin tearing like rotting lilies.
-> **Sensory:** The sweetness of funeral flowers fighting the eye-stinging stench of a lizard tank.
-> **Logic:** The *Withering* of the newt triggers the concept of **Signal Attenuation**.
-
+> This chapter covers long-haul data routing methodologies.
+> 
+> ## Section 3.1: Attenuation Metrics
+>> When scaling links across vast spaces, signal degradation becomes a primary bottleneck.
+>>
+>> **Wide Area Network (WAN)**-> [!abstract] Mnemonic Anchor (Golf Token)
+> ## **Mnemonic:** (WAN) **W**.ithering **A**.mbrosia **N**.ewts 
+>> **Visual:** Continental-sized translucent amphibians bridging ocean floors; their skin tearing like rotting lilies.\
+>> **Sensory:** The sweetness of funeral flowers fighting the eye-stinging stench of caustic ammonia.\
+>> **Logic:** The *Withering* of the newt directly anchors the concept of **Signal Attenuation**.
+>>> [Possible image placeholder for future iterations]\
+>>> (author or AI used to generate images)\
 ---
 
 ## Deployment 

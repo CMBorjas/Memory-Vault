@@ -217,6 +217,33 @@ async def move_document(doc_id: str, book: str = "Networking"):
     return {"message": f"Moved to {book}.", "old_book": old_book, "new_book": book}
 
 
+@app.put("/api/documents/{doc_id}/title")
+async def update_title(doc_id: str, payload: dict):
+    """Update the title of a document."""
+    new_title = payload.get("title")
+    if not new_title:
+        raise HTTPException(status_code=400, detail="Title cannot be empty.")
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    
+    old_title = doc.get("filename", "")
+    doc["filename"] = new_title
+    doc["title"] = new_title
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": f"Changed title from '{old_title}' to '{new_title}'"
+    })
+    with open(p, "w") as f_out:
+        json.dump(doc, f_out, indent=2)
+    return {"message": "Title updated.", "title": new_title}
+
+
 @app.put("/api/documents/{doc_id}/favourite")
 async def toggle_favourite(doc_id: str):
     """Toggle the favourite status of a document."""
@@ -280,28 +307,32 @@ def extract_pdf_sections(pdf_path: Path) -> list:
 
     for page_num, page in enumerate(doc):
         for block in page.get_text("dict")["blocks"]:
-            parts, is_heading = [], False
+            heading_parts = []
+            content_parts = []
             for line in block.get("lines", []):
                 for span in line["spans"]:
                     text = span["text"].strip()
                     if not text:
                         continue
-                    if span["size"] >= heading_thresh or (span["size"] > body_size and span["flags"] & 16):
-                        is_heading = True
-                    parts.append(text)
+                    if span["size"] >= heading_thresh or (span["size"] >= body_size and span["flags"] & 16):
+                        heading_parts.append(text)
+                    else:
+                        content_parts.append(text)
 
-            block_text = " ".join(parts).strip()
-            if not block_text:
+            heading_text = " ".join(heading_parts).strip()
+            content_text = " ".join(content_parts).strip()
+            
+            if not heading_text and not content_text:
                 continue
 
-            if is_heading:
+            if heading_text:
                 if current and current["content"].strip():
                     sections.append(current)
-                current = {"title": block_text, "content": "", "page": page_num + 1, "key_terms": []}
+                current = {"title": heading_text, "content": content_text + "\n" if content_text else "", "page": page_num + 1, "key_terms": []}
             elif current:
-                current["content"] += block_text + "\n"
+                current["content"] += content_text + "\n"
             else:
-                current = {"title": "Introduction", "content": block_text + "\n", "page": 1, "key_terms": []}
+                current = {"title": "Introduction", "content": content_text + "\n", "page": 1, "key_terms": []}
 
     if current and current["content"].strip():
         sections.append(current)
