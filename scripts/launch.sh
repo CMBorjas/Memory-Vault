@@ -7,10 +7,12 @@
 
 set -e
 
-# Resolve script directory and change to project root
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_ROOT"
+# Resolve the real path of this script, following symlinks
+# (needed when launched via ~/.local/bin/memory-vault-launch symlink)
+REAL_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "${REAL_SCRIPT}")"
+PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
+cd "${PROJECT_ROOT}"
 
 echo "=== Starting Memory Vault ==="
 
