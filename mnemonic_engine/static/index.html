@@ -31,6 +31,15 @@
         </div>
     </header>
 
+    <!-- ═══ Global Progress Bar ═══ -->
+    <div id="global-progress" style="display: none; background: var(--bg-hover); border-bottom: 1px solid var(--border-color); padding: 0.5rem 2rem; align-items: center; gap: 1rem;">
+        <span class="icon" style="color: var(--accent-primary);">⚡</span>
+        <div class="upload-progress__bar" style="flex: 1; margin: 0; height: 6px;">
+            <div class="upload-progress__fill" id="global-progress-fill" style="width: 0%;"></div>
+        </div>
+        <span id="global-progress-text" class="text-muted" style="font-size: 0.85rem; min-width: 250px;">Processing...</span>
+    </div>
+
     <!-- ═══ Edit Action Bar ═══ -->
     <div class="edit-action-bar hidden" id="edit-action-bar">
         <div class="edit-action-bar__inner">
@@ -154,6 +163,80 @@
                     </div>
                     <p class="upload-progress__text" id="progress-text">Processing...</p>
                 </div>
+
+                <!-- ═══ Slicer Workspace (Hidden initially) ═══ -->
+                <div id="slicer-workspace" class="slicer-workspace hidden">
+                    <div class="slicer-header">
+                        <h2>Configure Chapter Splits</h2>
+                        <button class="btn btn-link" id="btn-cancel-slicer">✕ Cancel</button>
+                    </div>
+                    
+                    <div class="slicer-layout">
+                        <!-- Left Panel: Grid Visual Previews -->
+                        <div class="slicer-preview-panel">
+                            <div class="slicer-preview-header">
+                                <h3>Pages</h3>
+                                <div class="scale-control">
+                                    <span>Size</span>
+                                    <input type="range" id="slicer-scale" min="0.5" max="2" step="0.1" value="1">
+                                </div>
+                            </div>
+                            <div class="thumbnail-grid" id="slicer-thumbnail-grid">
+                                <!-- Populated dynamically by pdf.js -->
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Slicing Options & Ranges -->
+                        <div class="slicer-control-panel">
+                            <!-- Slicer Mode Tabs -->
+                            <div class="slicer-tabs">
+                                <button class="slicer-tab active" data-tab="toc">TOC / Bookmarks</button>
+                                <button class="slicer-tab" data-tab="manual">Manual Ranges</button>
+                                <button class="slicer-tab" data-tab="fixed">Fixed Splits</button>
+                            </div>
+
+                            <div class="slicer-tab-content">
+                                <!-- TOC Tab -->
+                                <div class="tab-pane active" id="pane-toc">
+                                    <p class="text-muted text-sm" style="margin-bottom: 0.75rem;">Select chapters detected from table of contents:</p>
+                                    <div class="toc-list" id="toc-list">
+                                        <!-- Checkboxes and ranges -->
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" id="btn-toc-select-all" style="margin-top: 1rem;">Select All</button>
+                                </div>
+
+                                <!-- Manual Tab -->
+                                <div class="tab-pane" id="pane-manual">
+                                    <p class="text-muted text-sm" style="margin-bottom: 0.75rem;">Enter comma-separated ranges (e.g. 1-10, 11-20, 21-30):</p>
+                                    <input type="text" id="manual-ranges-input" placeholder="e.g. 1-5, 6-12, 13" style="width: 100%; box-sizing: border-box; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-hover); color: white; margin-bottom: 1rem; outline: none;">
+                                    <button class="btn btn-secondary btn-sm" id="btn-apply-manual">Apply Ranges</button>
+                                </div>
+
+                                <!-- Fixed Tab -->
+                                <div class="tab-pane" id="pane-fixed">
+                                    <p class="text-muted text-sm" style="margin-bottom: 0.75rem;">Split the PDF into chunks of fixed page sizes:</p>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+                                        <input type="number" id="fixed-pages-input" min="1" value="5" style="width: 80px; box-sizing: border-box; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-hover); color: white; outline: none;">
+                                        <span>pages per chapter</span>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" id="btn-apply-fixed">Apply Splits</button>
+                                </div>
+                            </div>
+
+                            <div class="slicer-divider" style="margin: 1.5rem 0; border-bottom: 1px solid var(--border-color);"></div>
+
+                            <!-- List of proposed chapters -->
+                            <div class="proposed-chapters-section" style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
+                                <h3 style="margin-bottom: 0.5rem;">Proposed Chapters</h3>
+                                <div class="chapters-list" id="proposed-chapters-list" style="flex: 1; overflow-y: auto; max-height: 250px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid var(--border-color); padding: 0.5rem;">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" id="btn-execute-slicer" style="width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1.1rem;">Slice & Import Chapters</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ═══ Library View ═══ -->
@@ -243,6 +326,9 @@
     <!-- ═══ Toast Notifications ═══ -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- PDF processing libraries (pdf.js and pdf-lib) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="/static/app.js?v=4"></script>
 </body>
 </html>

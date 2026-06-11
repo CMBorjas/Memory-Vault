@@ -6,6 +6,14 @@ let currentDocument = null;
 let bookProfiles = {};
 let selectedBook = 'Networking';
 
+// Slicer Workspace State
+let currentPdfFile = null;
+let currentPdfDoc = null;
+let slicerChapters = []; // array of { id, name, from, to }
+let slicerActiveTab = 'toc';
+let slicerThumbnailScale = 1.0;
+
+
 // ═══ Initialization ═══
 document.addEventListener('DOMContentLoaded', async () => {
     setupNavigation();
@@ -14,7 +22,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkEngineStatus();
     await loadBooks();
     await loadLibrary();
+    
+    startGlobalProgressPolling();
 });
+
+// ═══ Global Progress Polling ═══
+function startGlobalProgressPolling() {
+    setInterval(async () => {
+        try {
+            const r = await fetch('/api/progress');
+            if (r.ok) {
+                const data = await r.json();
+                const gp = document.getElementById('global-progress');
+                const fill = document.getElementById('global-progress-fill');
+                const text = document.getElementById('global-progress-text');
+                
+                if (data.status === 'idle') {
+                    if (gp) gp.style.display = 'none';
+                } else {
+                    if (gp) gp.style.display = 'flex';
+                    let pct = 0;
+                    if (data.status === 'extracting') {
+                        pct = Math.floor((data.current_page / data.total_pages) * 100);
+                    } else if (data.status === 'generating') {
+                        pct = Math.floor((data.current_section / data.total_sections) * 100);
+                    } else if (data.status === 'batch') {
+                        pct = Math.floor((data.current_file / data.total_files) * 100);
+                    }
+                    if (fill) fill.style.width = pct + '%';
+                    if (text) text.textContent = data.message || `Processing...`;
+                    
+                    // Also sync local upload UI if visible
+                    const localFill = document.getElementById('progress-fill');
+                    const localText = document.getElementById('progress-text');
+                    const localProgress = document.getElementById('upload-progress');
+                    if (localProgress && !localProgress.classList.contains('hidden')) {
+                        if (localFill) localFill.style.width = pct + '%';
+                        if (localText) localText.textContent = data.message;
+                    }
+                }
+            }
+        } catch (e) {}
+    }, 1000);
+}
 
 // ═══ State & API ═══
 async function checkEngineStatus() {
@@ -167,39 +217,8 @@ async function handleUpload(file) {
         return showToast('Only PDF files are allowed', 'error');
     }
     
-    const progress = document.getElementById('upload-progress');
-    const fill = document.getElementById('progress-fill');
-    const text = document.getElementById('progress-text');
-    
-    progress.classList.remove('hidden');
-    fill.style.width = '10%';
-    text.textContent = `Uploading ${file.name}...`;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        fill.style.width = '40%';
-        text.textContent = 'Extracting and generating mnemonics...';
-        
-        const res = await fetch(`/api/upload?book=${selectedBook}`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!res.ok) throw new Error(await res.text());
-        
-        const data = await res.json();
-        fill.style.width = '100%';
-        text.textContent = 'Complete!';
-        
-        showToast('PDF processed successfully', 'success');
-        setTimeout(() => loadDocument(data.id), 500);
-        
-    } catch (e) {
-        showToast(e.message, 'error');
-        progress.classList.add('hidden');
-    }
+    // Intercept upload to open the browser-side slicer workspace
+    openSlicerWorkspace(file);
 }
 
 // ═══ Library & Document ═══
@@ -713,3 +732,500 @@ function showToast(msg, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// ═══ Slicer Workspace Logic ═══
+
+async function openSlicerWorkspace(file) {
+    currentPdfFile = file;
+    
+    // Hide standard upload area controls
+    document.getElementById('upload-zone').classList.add('hidden');
+    document.querySelector('.book-selector').classList.add('hidden');
+    
+    // Show workspace
+    const workspace = document.getElementById('slicer-workspace');
+    workspace.classList.remove('hidden');
+    
+    // Initialize status elements
+    const grid = document.getElementById('slicer-thumbnail-grid');
+    grid.innerHTML = '<p class="text-muted" style="grid-column: 1/-1;">Reading PDF structure...</p>';
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        
+        // Load PDF using pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        currentPdfDoc = await loadingTask.promise;
+        
+        showToast('PDF loaded successfully', 'success');
+        
+        // Bind Scale Slider
+        const scaleInput = document.getElementById('slicer-scale');
+        scaleInput.oninput = (e) => {
+            slicerThumbnailScale = parseFloat(e.target.value);
+            renderSlicerThumbnails(currentPdfDoc);
+        };
+        
+        // Render visual pages grid
+        await renderSlicerThumbnails(currentPdfDoc);
+        
+        // Ingest TOC bookmarks outline
+        const outline = await currentPdfDoc.getOutline();
+        const tocListContainer = document.getElementById('toc-list');
+        
+        if (outline && outline.length > 0) {
+            tocListContainer.innerHTML = '<p class="text-muted text-sm">Resolving page offsets...</p>';
+            const flattened = flattenOutline(outline);
+            const resolvedMarkers = [];
+            
+            for (const item of flattened) {
+                const pageNum = await resolveOutlineItem(currentPdfDoc, item);
+                if (pageNum !== null) {
+                    resolvedMarkers.push({ title: item.title, page: pageNum });
+                }
+            }
+            
+            if (resolvedMarkers.length > 0) {
+                // Render checkboxes
+                tocListContainer.innerHTML = '';
+                resolvedMarkers.forEach((marker, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'toc-item';
+                    itemDiv.innerHTML = `
+                        <input type="checkbox" id="toc-check-${index}" checked data-title="${marker.title}" data-page="${marker.page}">
+                        <span class="toc-title" title="${marker.title}">${marker.title}</span>
+                        <span class="toc-range-label">Page ${marker.page}</span>
+                    `;
+                    // Bind change listener
+                    itemDiv.querySelector('input').addEventListener('change', updateSlicerRanges);
+                    tocListContainer.appendChild(itemDiv);
+                });
+                
+                // Set default chapters from TOC
+                slicerActiveTab = 'toc';
+                updateSlicerRanges();
+            } else {
+                tocListContainer.innerHTML = '<p class="text-muted text-sm" style="padding: 0.5rem;">No valid page bookmarks found in outline.</p>';
+                switchSlicerTab('manual');
+            }
+        } else {
+            tocListContainer.innerHTML = '<p class="text-muted text-sm" style="padding: 0.5rem;">No bookmarks detected in this PDF.</p>';
+            switchSlicerTab('manual');
+        }
+        
+        // Bind UI Controls
+        document.getElementById('btn-cancel-slicer').onclick = closeSlicerWorkspace;
+        document.getElementById('btn-execute-slicer').onclick = executeSlicer;
+        
+        // Tab switching
+        document.querySelectorAll('.slicer-tab').forEach(tab => {
+            tab.onclick = (e) => {
+                switchSlicerTab(e.target.dataset.tab);
+            };
+        });
+        
+        // Ingest action buttons
+        document.getElementById('btn-toc-select-all').onclick = () => {
+            document.querySelectorAll('#toc-list input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateSlicerRanges();
+        };
+        
+        document.getElementById('btn-apply-manual').onclick = () => {
+            const val = document.getElementById('manual-ranges-input').value;
+            slicerChapters = parseManualRanges(val, currentPdfDoc.numPages);
+            renderProposedChapters();
+        };
+        
+        document.getElementById('btn-apply-fixed').onclick = () => {
+            const pages = parseInt(document.getElementById('fixed-pages-input').value) || 5;
+            slicerChapters = generateFixedRanges(pages, currentPdfDoc.numPages);
+            renderProposedChapters();
+        };
+        
+    } catch (e) {
+        console.error("Failed to load PDF:", e);
+        showToast(`Failed to parse PDF: ${e.message}`, 'error');
+        closeSlicerWorkspace();
+    }
+}
+
+function closeSlicerWorkspace() {
+    currentPdfFile = null;
+    currentPdfDoc = null;
+    slicerChapters = [];
+    
+    // Restore layout
+    document.getElementById('slicer-workspace').classList.add('hidden');
+    document.getElementById('upload-zone').classList.remove('hidden');
+    document.querySelector('.book-selector').classList.remove('hidden');
+    
+    // Reset file inputs
+    document.getElementById('file-input').value = '';
+    const progress = document.getElementById('upload-progress');
+    if (progress) progress.classList.add('hidden');
+}
+
+async function renderSlicerThumbnails(pdf) {
+    const grid = document.getElementById('slicer-thumbnail-grid');
+    grid.innerHTML = '<p class="text-muted" style="grid-column: 1/-1;">Rendering page thumbnails...</p>';
+    
+    const numPages = pdf.numPages;
+    const fragment = document.createDocumentFragment();
+    
+    const renderPage = async (pageNumber) => {
+        const page = await pdf.getPage(pageNumber);
+        // Responsive scaling
+        const viewport = page.getViewport({ scale: 0.3 * slicerThumbnailScale });
+        
+        const card = document.createElement('div');
+        card.className = 'thumbnail-card';
+        card.dataset.page = pageNumber;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        
+        const badge = document.createElement('div');
+        badge.className = 'page-badge';
+        badge.textContent = `Page ${pageNumber}`;
+        
+        card.appendChild(canvas);
+        card.appendChild(badge);
+        
+        card.onclick = () => {
+            toggleSlicerThumbnailSelection(pageNumber, card);
+        };
+        
+        return card;
+    };
+    
+    // Draw all
+    grid.innerHTML = '';
+    for (let p = 1; p <= numPages; p++) {
+        try {
+            const card = await renderPage(p);
+            fragment.appendChild(card);
+        } catch (err) {
+            console.error("Page render error:", p, err);
+        }
+    }
+    grid.appendChild(fragment);
+    
+    // Restore selections
+    highlightThumbnailSelections();
+}
+
+function toggleSlicerThumbnailSelection(pageNumber, cardElement) {
+    if (slicerActiveTab !== 'manual') {
+        // Thumbnail clicking acts as visual zoom in tabs other than manual range selecting
+        // Or we can let them add ranges manually by clicking
+        showToast(`Visual page selection is configured in the 'Manual Ranges' tab.`, 'info');
+        return;
+    }
+    
+    const input = document.getElementById('manual-ranges-input');
+    const curVal = input.value.trim();
+    
+    // Add page number to manual range input
+    if (curVal) {
+        input.value = curVal + `, ${pageNumber}`;
+    } else {
+        input.value = `${pageNumber}`;
+    }
+    
+    // Apply changes automatically
+    slicerChapters = parseManualRanges(input.value, currentPdfDoc.numPages);
+    renderProposedChapters();
+    highlightThumbnailSelections();
+}
+
+function highlightThumbnailSelections() {
+    document.querySelectorAll('.thumbnail-card').forEach(card => {
+        const pageNum = parseInt(card.dataset.page);
+        const isSelected = slicerChapters.some(c => pageNum >= c.from && pageNum <= c.to);
+        
+        if (isSelected) {
+            card.classList.add('selected');
+            if (!card.querySelector('.thumbnail-checkmark')) {
+                const check = document.createElement('div');
+                check.className = 'thumbnail-checkmark';
+                check.textContent = '✓';
+                card.appendChild(check);
+            }
+        } else {
+            card.classList.remove('selected');
+            const check = card.querySelector('.thumbnail-checkmark');
+            if (check) check.remove();
+        }
+    });
+}
+
+function switchSlicerTab(tabName) {
+    slicerActiveTab = tabName;
+    
+    // Update headers
+    document.querySelectorAll('.slicer-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    
+    // Update panes
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === `pane-${tabName}`);
+    });
+    
+    updateSlicerRanges();
+}
+
+function updateSlicerRanges() {
+    if (!currentPdfDoc) return;
+    
+    if (slicerActiveTab === 'toc') {
+        const checkedItems = [];
+        document.querySelectorAll('#toc-list input[type="checkbox"]:checked').forEach(cb => {
+            checkedItems.push({
+                title: cb.dataset.title,
+                page: parseInt(cb.dataset.page)
+            });
+        });
+        
+        slicerChapters = computeRangesFromMarkers(checkedItems, currentPdfDoc.numPages);
+    } else if (slicerActiveTab === 'manual') {
+        const val = document.getElementById('manual-ranges-input').value;
+        slicerChapters = parseManualRanges(val, currentPdfDoc.numPages);
+    } else if (slicerActiveTab === 'fixed') {
+        const pages = parseInt(document.getElementById('fixed-pages-input').value) || 5;
+        slicerChapters = generateFixedRanges(pages, currentPdfDoc.numPages);
+    }
+    
+    renderProposedChapters();
+    highlightThumbnailSelections();
+}
+
+function renderProposedChapters() {
+    const container = document.getElementById('proposed-chapters-list');
+    container.innerHTML = '';
+    
+    if (slicerChapters.length === 0) {
+        container.innerHTML = '<p class="text-muted text-sm" style="padding: 0.5rem; text-align: center;">No chapters configured yet.</p>';
+        return;
+    }
+    
+    slicerChapters.forEach((chapter, index) => {
+        const item = document.createElement('div');
+        item.className = 'proposed-chapter-item';
+        item.innerHTML = `
+            <input type="text" value="${chapter.name}" data-id="${chapter.id}" style="width: 60%;">
+            <span class="range-badge">Pages ${chapter.from} - ${chapter.to}</span>
+            <button class="btn-remove-proposed" data-id="${chapter.id}">✕</button>
+        `;
+        
+        // Name update listener
+        item.querySelector('input').addEventListener('input', (e) => {
+            const chId = e.target.dataset.id;
+            slicerChapters = slicerChapters.map(c => c.id === chId ? { ...c, name: e.target.value } : c);
+        });
+        
+        // Remove listener
+        item.querySelector('.btn-remove-proposed').onclick = () => {
+            slicerChapters = slicerChapters.filter(c => c.id !== chapter.id);
+            renderProposedChapters();
+            highlightThumbnailSelections();
+        };
+        
+        container.appendChild(item);
+    });
+}
+
+// Helper structures for slicer mapping
+function flattenOutline(outline) {
+    const list = [];
+    function recurse(items) {
+        if (!items) return;
+        for (const item of items) {
+            list.push(item);
+            recurse(item.items);
+        }
+    }
+    recurse(outline);
+    return list;
+}
+
+async function resolveOutlineItem(pdf, item) {
+    let dest = item.dest;
+    if (!dest) return null;
+    if (typeof dest === 'string') {
+        dest = await pdf.getDestination(dest);
+    }
+    if (Array.isArray(dest) && dest.length > 0) {
+        const pageRef = dest[0];
+        try {
+            const pageIndex = await pdf.getPageIndex(pageRef);
+            return pageIndex + 1;
+        } catch (err) {
+            console.error("Outline marker page resolution error:", err);
+            return null;
+        }
+    }
+    return null;
+}
+
+function computeRangesFromMarkers(markers, totalPages) {
+    const valid = markers.filter(m => m.page !== null && m.page >= 1 && m.page <= totalPages);
+    if (valid.length === 0) return [];
+    
+    valid.sort((a, b) => a.page - b.page);
+    
+    // Deduplicate same pages
+    const unique = [];
+    const seen = new Set();
+    for (const item of valid) {
+        if (!seen.has(item.page)) {
+            seen.add(item.page);
+            unique.push(item);
+        }
+    }
+    
+    const ranges = [];
+    for (let i = 0; i < unique.length; i++) {
+        const current = unique[i];
+        const next = unique[i + 1];
+        
+        const from = current.page;
+        const to = next ? next.page - 1 : totalPages;
+        
+        if (from <= to) {
+            ranges.push({
+                id: 'toc-' + i + '-' + Date.now(),
+                name: current.title.replace(/[^\w\s-]/g, '').trim() || `Chapter_${i+1}`,
+                from: from,
+                to: to
+            });
+        }
+    }
+    return ranges;
+}
+
+function parseManualRanges(str, totalPages) {
+    const parts = str.split(',');
+    const ranges = [];
+    let counter = 1;
+    for (const part of parts) {
+        const trim = part.trim();
+        if (!trim) continue;
+        const bounds = trim.split('-');
+        if (bounds.length === 1) {
+            const pg = parseInt(bounds[0]);
+            if (!isNaN(pg) && pg >= 1 && pg <= totalPages) {
+                ranges.push({
+                    id: 'manual-' + counter++ + '-' + Date.now(),
+                    name: `Chapter_${pg}`,
+                    from: pg,
+                    to: pg
+                });
+            }
+        } else if (bounds.length === 2) {
+            const from = parseInt(bounds[0]);
+            const to = parseInt(bounds[1]);
+            if (!isNaN(from) && !isNaN(to) && from >= 1 && to <= totalPages && from <= to) {
+                ranges.push({
+                    id: 'manual-' + counter++ + '-' + Date.now(),
+                    name: `Chapter_${from}_to_${to}`,
+                    from: from,
+                    to: to
+                });
+            }
+        }
+    }
+    return ranges;
+}
+
+function generateFixedRanges(pagesPerSplit, totalPages) {
+    const ranges = [];
+    let from = 1;
+    let counter = 1;
+    while (from <= totalPages) {
+        const to = Math.min(from + pagesPerSplit - 1, totalPages);
+        ranges.push({
+            id: 'fixed-' + counter + '-' + Date.now(),
+            name: `Chapter_Part_${counter}`,
+            from: from,
+            to: to
+        });
+        from = to + 1;
+        counter++;
+    }
+    return ranges;
+}
+
+async function executeSlicer() {
+    if (slicerChapters.length === 0) {
+        return showToast('Please configure at least one chapter range.', 'error');
+    }
+    
+    const btn = document.getElementById('btn-execute-slicer');
+    const originalText = btn.textContent;
+    btn.textContent = 'Preparing splits...';
+    btn.disabled = true;
+    
+    try {
+        const arrayBuffer = await currentPdfFile.arrayBuffer();
+        const originalBytes = new Uint8Array(arrayBuffer);
+        
+        // Load original document into pdf-lib
+        const srcDoc = await PDFLib.PDFDocument.load(originalBytes);
+        
+        showToast(`Splitting into ${slicerChapters.length} chapters...`, 'info');
+        
+        // Loop through and slice
+        for (let i = 0; i < slicerChapters.length; i++) {
+            const chapter = slicerChapters[i];
+            btn.textContent = `Processing Chapter ${i + 1}/${slicerChapters.length}...`;
+            
+            const newPdf = await PDFLib.PDFDocument.create();
+            const start = chapter.from - 1; // Convert to 0-indexed index
+            const end = chapter.to - 1;
+            
+            const pageIndices = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+            const copiedPages = await newPdf.copyPages(srcDoc, pageIndices);
+            copiedPages.forEach(p => newPdf.addPage(p));
+            
+            const pdfBytes = await newPdf.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            
+            // Upload to backend sequentially
+            btn.textContent = `Uploading Chapter ${i + 1}/${slicerChapters.length}...`;
+            const formData = new FormData();
+            formData.append('file', blob, `${chapter.name}.pdf`);
+            
+            const res = await fetch(`/api/upload?book=${selectedBook}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!res.ok) {
+                throw new Error(`Failed to upload ${chapter.name}: ${await res.text()}`);
+            }
+            
+            showToast(`Uploaded ${chapter.name}`, 'success');
+        }
+        
+        showToast('All chapters successfully split and imported!', 'success');
+        
+        // Restore screen & reload catalog library
+        closeSlicerWorkspace();
+        await loadLibrary();
+        switchView('library');
+        
+    } catch (err) {
+        console.error("Slicer extraction failed:", err);
+        showToast(`Slicing or upload failed: ${err.message}`, 'error');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+

@@ -51,6 +51,18 @@ async def serve_gui():
     return FileResponse(str(index_path))
 
 
+@app.get("/api/progress")
+async def get_progress():
+    p = DATA_PATH / "progress.json"
+    if p.exists():
+        try:
+            with open(p) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"status": "idle"}
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "alive", "version": "0.1.0", "books_loaded": list(engine.config.get("books", {}).keys())}
@@ -78,8 +90,25 @@ async def upload_pdf(file: UploadFile = File(...), book: str = "Networking"):
 
     try:
         sections = extract_pdf_sections(upload_path)
-        for section in sections:
+        for i, section in enumerate(sections):
+            try:
+                with open(DATA_PATH / "progress.json", "w") as f:
+                    json.dump({
+                        "status": "generating",
+                        "filename": file.filename,
+                        "current_section": i + 1,
+                        "total_sections": len(sections),
+                        "message": f"Generating mnemonics: section {i + 1} of {len(sections)}"
+                    }, f)
+            except Exception:
+                pass
             section["mnemonics"] = engine.generate(section, book)
+            
+        try:
+            with open(DATA_PATH / "progress.json", "w") as f:
+                json.dump({"status": "idle"}, f)
+        except Exception:
+            pass
 
         now = datetime.now().isoformat()
         document = {
@@ -303,10 +332,35 @@ def extract_pdf_sections(pdf_path: Path) -> list:
         return []
 
     body_size = Counter(all_sizes).most_common(1)[0][0]
-    heading_thresh = body_size * 1.15
+    heading_thresh = body_size * 1.1
 
+    total_pages = len(doc)
     for page_num, page in enumerate(doc):
-        for block in page.get_text("dict")["blocks"]:
+        try:
+            with open(DATA_PATH / "progress.json", "w") as f:
+                json.dump({
+                    "status": "extracting",
+                    "filename": pdf_path.name,
+                    "current_page": page_num + 1,
+                    "total_pages": total_pages,
+                    "message": f"Extracting text: page {page_num + 1} of {total_pages}"
+                }, f)
+        except Exception:
+            pass
+
+        blocks = page.get_text("dict")["blocks"]
+        
+        # OCR Fallback for scanned pages
+        text_length = len(page.get_text("text").strip())
+        if text_length < 100 and len(page.get_images()) > 0:
+            logger.info(f"Page {page_num+1} appears to be a scanned image. Attempting OCR...")
+            try:
+                page_ocr = page.get_textpage_ocr(flags=fitz.TEXT_PRESERVE_IMAGES, language="eng", dpi=300)
+                blocks = page_ocr.extractDICT()["blocks"]
+            except Exception as e:
+                logger.warning(f"OCR failed on page {page_num+1}: {e}")
+
+        for block in blocks:
             heading_parts = []
             content_parts = []
             for line in block.get("lines", []):

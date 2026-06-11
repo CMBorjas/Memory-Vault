@@ -4,7 +4,6 @@ services:
   engine:
     build: ./mnemonic_engine
     container_name: anti-gravity-engine
-    user: "root"
     ports:
       - "8000:8000"
     volumes:

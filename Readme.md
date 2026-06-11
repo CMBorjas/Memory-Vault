@@ -1,97 +1,130 @@
 # Anti-Gravity Knowledge Engine (AGKE)
-**Grotesque Sensory Mnemonics for CS Notes**
+> **Grotesque Sensory Mnemonics & Cognitive Anchors for Computer Science Studies**
 
-**Anti-Gravity** is a containerized, horizontally scalable knowledge ecosystem designed to bridge the gap between "Cold Data" (Textbooks/PDFs) and "Living Knowledge" (Mnemonics & Sensory Anchors).
-
-## The Core Philosophy: "Dissonance for Retention"
-
-Standard wikis fail because they are "clean." AGKE succeeds by being **grotesque**. By utilizing sensory dissonance—clashing sweet ambrosia with caustic ammonia—we anchor technical CS concepts into long-term biological storage.
-
-### The "Sanitizer" Protocol
-The system maintains a dual-state:
-1. **Locus View:** The grotesque, mnemonic-rich study mode (used locally in Obsidian).
-2. **Sanitized View:** A professional, production-ready export for portfolios/sharing, purged of all "disturbing" imagery or references to the mnemonic anchors.
+**Anti-Gravity** is a containerized, horizontally scalable knowledge ecosystem designed to bridge the gap between "Cold Data" (textbook pages) and "Living Knowledge" (sensory anchors). By applying cognitive dissonance—blending synthetic beauty with organic decay—AGKE encodes complex computer science abstractions into long-term human memory.
 
 ---
 
-## Architecture 
+## 🧬 Core Principles
 
-### 1. The Mnemonic Engine
-A containerized FastAPI application (`mnemonic_engine/`) that serves as the heart of the system.
-* **PDF Import:** Ingests raw textbook PDFs and splits them into logical sections based on font-size heuristics.
-* **Mnemonic Generation:** Uses Jinja2 templates and configurable profiles to generate unique acronyms, visual anchors, and scent profiles for each Chapter, subsection, and key terms within each section.
-* **Web GUI:** A premium dark-themed interface for uploading PDFs, reviewing generated mnemonics, editing them interactively, and exporting to the vault.
+### 1. Dissonance for Retention
+Standard documentation fails because it is sterile and uniform. AGKE succeeds by being **grotesque**. By linking dry computational structures to visceral scent profiles (e.g., ambrosia and ammonia) and biological kingdom themes, we prevent "memory bleeding" between similar technical topics.
 
-### 2. The Locus Vault
-The generated knowledge is exported directly into an **Obsidian** vault (`vault/` directory) as cleanly formatted Markdown files (`.md`), keeping the original structure intact while injecting the memory anchors as Obsidian callouts.
-
-### 3. Future: Data Redundancy
-*Currently shelved for local development:*
-* Integration with University OneDrive / Google Drive via `rclone` for raw PDF sourcing.
-* Local NAS (NFS/SMB) for persistent backups.
-* Syncthing for P2P redundancy between Desktop and NAS.
+### 2. Dual-State Views (The Sanitizer Protocol)
+The system maintains notes in two formats:
+1. **Locus View (Obsidian):** The primary study format containing the original text, key terms, and collapsed memory anchors. By utilizing Obsidian's native collapsible syntax (`[!abstract]-`), mnemonics remain hidden until manually toggled open.
+2. **Sanitized View (GitHub Pages):** A clean, production-ready output purged of grotesque visuals, presenting elegant summaries and interactive elements suitable for portfolios or public hosting.
 
 ---
 
-## Book-Scale Mnemonic Reasoning
+## 🏗️ System Architecture
 
-Each book/module in the vault is assigned a biological kingdom and a sensory profile in `book_config.yml` to prevent "memory bleeding":
-
-| Subject | Biological Anchor | Mnemonic Aesthetic | Scent Profile |
-| --- | --- | --- | --- |
-| **Networking** | Amphibians | Withering/Decaying | Ambrosia + Ammonia |
-| **Databases** | Insects | Chitinous/Swarming | Ozone + Sulfur |
-| **Cybersecurity** | Fungi | Parasitic/Spores | Truffle + Damp Copper |
-| **Algorithms** | Cephalopods | Shifting/Ink-Cloud | Brine + Iodine |
-| **OS** | Arachnids | Webbing/Lurking | Petrichor + Formaldehyde |
-| **etc..**| etc.. | etc.. | etc.. |
-
-## Example Document Generation (Locus View)
-
-> ---
-> # Chapter 3: Wide Area Network (W.A.N.)
->
->> book: networking \
->> cssclasses: ecosystem-aquatic
-> ---
-> 
-> This chapter covers long-haul data routing methodologies.
-> 
-> ## Section 3.1: Attenuation Metrics
->> When scaling links across vast spaces, signal degradation becomes a primary bottleneck.
->>
->> **Wide Area Network (WAN)**-> [!abstract] Mnemonic Anchor (Golf Token)
-> ## **Mnemonic:** (WAN) **W**.ithering **A**.mbrosia **N**.ewts 
->> **Visual:** Continental-sized translucent amphibians bridging ocean floors; their skin tearing like rotting lilies.\
->> **Sensory:** The sweetness of funeral flowers fighting the eye-stinging stench of caustic ammonia.\
->> **Logic:** The *Withering* of the newt directly anchors the concept of **Signal Attenuation**.
->>> [Possible image placeholder for future iterations]\
->>> (author or AI used to generate images)\
----
-
-## Deployment 
-
-1. **Clone the repository:**
-```bash
-git clone <your-new-repo-url>
-cd Memory-Vault
+```mermaid
+graph TD
+    A["Raw PDF Ingestion"] --> B["Client-side PDF Slicer"]
+    B -->|Split Chapters| C["FastAPI Mnemonic Engine"]
+    C -->|Generate Anchors| D["Vault Exporter"]
+    
+    subgraph "Vault Outputs"
+        D --> E["Obsidian Locus Notes (Collapsible Grotesque Callouts)"]
+        D --> F["Sanitized HTML (Static GitHub Pages Portfolio)"]
+    end
 ```
 
-2. **Launch the Engine:**
-```bash
-docker-compose up -d --build
-```
+### 1. Client-Side Slicing Workspace
+To handle book-scale documents without server overloading, splitting is performed in the web GUI using `pdf.js` and `pdf-lib`:
+* **Auto-TOC Mapping:** Parses bookmarks to identify chapter divisions.
+* **Manual Ranges:** Permits page selection via text input (e.g., `1-10, 11-20`) or by clicking page thumbnails.
+* **Fixed Splits:** Divides files into uniform page count chapters.
 
-3. **Access the GUI:**
-Open your browser to `http://localhost:8000` to upload PDFs, generate mnemonics, and export notes into the Obsidian vault.
+### 2. Mnemonic Generation Pipeline
+The core Python application in [mnemonic_engine/](file:///home/hyro_antares/Documents/Repositories/Projects/Memory%20Vault/mnemonic_engine/) generates anchors using profiles in [book_config.yml](file:///home/hyro_antares/Documents/Repositories/Projects/Memory%20Vault/mnemonic_engine/book_config.yml). Each epoch/subject has distinct properties:
+
+| Subject | Biological Kingdom | Visual Aesthetic | Primary Scent | Secondary Scent | MC / Narrative Profile |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Networking** | Amphibians | Withering / Decaying | Ambrosia | Ammonia | *Newt* (Space Operetta) |
+| **Databases** | Insects | Chitinous / Swarming | Ozone | Sulfur | *Draven* (Cyberpunk) |
+| **Cybersecurity** | Fungi | Parasitic / Spores | Truffle | Damp Copper | *Calyra* (Survival Horror) |
+| **Algorithms** | Cephalopods | Shifting / Ink-Cloud | Brine | Iodine | *Cosmic horror protagonist* |
+| **Operating Systems** | Arachnids | Webbing / Lurking | Petrichor | Formaldehyde | *Gothic horror protagonist* |
 
 ---
 
-## Tech Stack
+## 📝 Example Note Layout (Locus View)
 
-* **Backend:** Python 3.11, FastAPI, Uvicorn
-* **PDF Processing:** PyMuPDF (`fitz`)
-* **Frontend:** Vanilla HTML/CSS/JS (Glassmorphism, Dark Theme)
-* **Templating:** Jinja2, PyYAML
-* **Deployment:** Docker & Docker Compose
-* **Knowledge Base:** Obsidian (Markdown)
+Notes exported to your [vault/](file:///home/hyro_antares/Documents/Repositories/Projects/Memory%20Vault/vault/) follow the layout below:
+
+```markdown
+---
+tags: [networking, study, mnemonic]
+status: learning
+mnemonic_type: grotesque
+source_page: 3
+created_at: 2026-06-11T15:42:00Z
+---
+
+> [!info] 📚 **Book:** [[_index|CompTIA Network+ Study Guide]]
+> **Chapter:** The Layered Approach | **Page:** 3
+
+# The Layered Approach
+
+> Reference models act as a conceptual blueprint for communications. 
+> Slicing functions into bound departments prevents protocols from 
+> needing to know details of other layers.
+
+---
+
+> [!abstract]- 🧠 Memory Anchor: Translucent newts Layered Approach
+> **Kingdom:** Amphibians
+> 
+> **The Imagery:**
+> A bloated salamander sits atop the layered approach architecture, its eyes weeping packet drops. Each blink sends signals through its withering nervous system.
+> 
+> **The Scent Anchor:**
+> Close your eyes. The Ambrosia fills the room, suffocatingly sweet like wilting funeral flowers. Underneath it, the Ammonia stings—sharp like a reptile tank baking in the sun.
+> 
+> **The Logic:**
+> The translucent newt is your brain's trigger for **The Layered Approach**—just as its membrane decays in layers, so does this architecture operate.
+
+---
+
+*[[02 - Previous Chapter|← Previous]] | [[04 - Next Chapter|Next →]]*
+```
+
+---
+
+## 🚀 Deployment & Installation
+
+### 1. Pre-requisites
+Ensure `docker` and `docker-compose` are installed and running on your system.
+
+### 2. Arch Garuda Linux Desktop Launcher
+AGKE comes with an automation script to build and install an application menu launcher shortcut:
+
+```bash
+# Register the application launcher in ~/.local/share/applications/
+./scripts/install_launcher.sh
+```
+
+This registers the launcher pointing to the startup controller [scripts/launch.sh](file:///home/hyro_antares/Documents/Repositories/Projects/Memory%20Vault/scripts/launch.sh), which:
+1. Validates that the Docker service is active.
+2. Runs the container stack.
+3. Polls the backend health check.
+4. Automatically opens the client GUI in your browser at `http://localhost:8000`.
+
+### 3. Manual Startup
+To run the containers manually:
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+## 🛠️ Technology Stack
+
+* **Client Browser App:** Vanilla HTML5, CSS3 (BookStack dark theme aesthetics), JS (ES6)
+* **Client PDF Engine:** `pdf.js` (Visual page thumbnails & TOC extraction), `pdf-lib` (Local page slicing/extraction)
+* **Backend API server:** Python 3.11, FastAPI, Uvicorn
+* **PDF OCR Engine:** PyMuPDF (`fitz`), Tesseract OCR (Fallback for scanned pages)
+* **Containerization:** Docker & Docker Compose
