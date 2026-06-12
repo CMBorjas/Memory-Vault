@@ -627,16 +627,13 @@ function renderDocument() {
         div.style.borderLeftColor = doc.profile ? doc.profile.color_palette[0] : 'var(--color-primary)';
         
         const isEditing = document.body.classList.contains('editing-mode');
-
         // Escape quotes to prevent HTML injection in inputs
         const esc = (str) => (str || '').replace(/"/g, '&quot;');
-        const summary = section.content.substring(0, 150) + '...';
 
         div.innerHTML = `
             <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div class="${isEditing ? 'hidden' : ''}">
                     <div class="bs-list-item__title" id="section-title-view-${index}">${section.title}</div>
-                    <div class="bs-list-item__summary" id="section-summary-view-${index}">${summary}</div>
                 </div>
             </div>
             
