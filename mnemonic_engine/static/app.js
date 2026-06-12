@@ -626,16 +626,37 @@ function renderDocument() {
         div.className = 'bs-list-item';
         div.style.borderLeftColor = doc.profile ? doc.profile.color_palette[0] : 'var(--color-primary)';
         
-        // Truncate content for summary
+        // Escape quotes to prevent HTML injection in inputs
+        const esc = (str) => (str || '').replace(/"/g, '&quot;');
         const summary = section.content.substring(0, 150) + '...';
 
         div.innerHTML = `
-            <div class="bs-list-item__header">
-                <div class="bs-list-item__title">${section.title}</div>
-                <div class="bs-list-item__summary">${summary}</div>
+            <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div class="bs-list-item__title" id="section-title-view-${index}">${section.title}</div>
+                    <div class="bs-list-item__summary" id="section-summary-view-${index}">${summary}</div>
+                </div>
+                <button class="btn btn-secondary btn-sm btn-edit-source" data-index="${index}" title="Edit Source Text">✎</button>
             </div>
+            
+            <!-- Source Text Editing Form -->
+            <div class="bs-list-item__source-edit hidden" id="section-source-edit-${index}" style="padding: 1rem; background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                <div class="form-group">
+                    <label>Section Title</label>
+                    <input type="text" class="form-control" id="edit-section-title-${index}" value="${esc(section.title)}">
+                </div>
+                <div class="form-group">
+                    <label>Source Content</label>
+                    <textarea class="form-control" id="edit-section-content-${index}" style="min-height: 200px; resize: vertical;">${esc(section.content)}</textarea>
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
+                    <button class="btn btn-link btn-sm btn-cancel-source" data-index="${index}">Cancel</button>
+                    <button class="btn btn-primary btn-sm btn-save-source" data-index="${index}">Save Source</button>
+                </div>
+            </div>
+
             <div class="bs-list-item__body">
-                <div class="bs-list-item__content">${section.content}</div>
+                <div class="bs-list-item__content" id="section-content-view-${index}">${section.content}</div>
                 <div class="bs-list-item__mnemonics">
                     <div class="mnemonic-field">
                         <label class="mnemonic-field__label">Acronym Anchor</label>
@@ -660,6 +681,27 @@ function renderDocument() {
                 </div>
             </div>
         `;
+        // Bind Source Edit Buttons
+        div.querySelector('.btn-edit-source').onclick = () => {
+            document.getElementById(`section-title-view-${index}`).parentElement.classList.add('hidden');
+            document.getElementById(`section-content-view-${index}`).classList.add('hidden');
+            document.getElementById(`section-source-edit-${index}`).classList.remove('hidden');
+            div.querySelector('.btn-edit-source').classList.add('hidden');
+        };
+        
+        div.querySelector('.btn-cancel-source').onclick = () => {
+            document.getElementById(`section-title-view-${index}`).parentElement.classList.remove('hidden');
+            document.getElementById(`section-content-view-${index}`).classList.remove('hidden');
+            document.getElementById(`section-source-edit-${index}`).classList.add('hidden');
+            div.querySelector('.btn-edit-source').classList.remove('hidden');
+        };
+        
+        div.querySelector('.btn-save-source').onclick = () => saveSectionSource(index);
+
+        // Bind Mnemonic Buttons
+        div.querySelector('.btn-save-section').onclick = () => saveMnemonics(index);
+        div.querySelector('.btn-regen-section').onclick = () => regenerateMnemonics(index);
+
         sectionsList.appendChild(div);
     });
     
@@ -721,6 +763,27 @@ async function regenerateMnemonics(idx) {
         currentDocument.sections[idx].user_edited = false;
         renderDocument();
         showToast('Regenerated new mnemonics', 'success');
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function saveSectionSource(idx) {
+    if (!currentDocument) return;
+    
+    const titleVal = document.getElementById(`edit-section-title-${idx}`).value;
+    const contentVal = document.getElementById(`edit-section-content-${idx}`).value;
+    
+    try {
+        const res = await fetch(`/api/documents/${currentDocument.id}/sections/${idx}/content`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: titleVal, content: contentVal })
+        });
+        if (!res.ok) throw new Error('Failed to update source text');
+        
+        showToast('Source text updated', 'success');
+        await loadDocument(currentDocument.id); // Reload the whole doc to reflect changes
     } catch (e) {
         showToast(e.message, 'error');
     }

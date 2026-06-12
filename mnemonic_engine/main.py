@@ -215,6 +215,36 @@ async def update_mnemonics(doc_id: str, section_idx: int, mnemonics: dict):
     return {"message": "Updated.", "section_idx": section_idx}
 
 
+from pydantic import BaseModel
+class SectionContentUpdate(BaseModel):
+    title: str
+    content: str
+
+@app.put("/api/documents/{doc_id}/sections/{section_idx}/content")
+async def update_section_content(doc_id: str, section_idx: int, update: SectionContentUpdate):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    if section_idx < 0 or section_idx >= len(doc["sections"]):
+        raise HTTPException(status_code=400, detail="Invalid section index.")
+    
+    doc["sections"][section_idx]["title"] = update.title
+    doc["sections"][section_idx]["content"] = update.content
+    
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": f"Edited source content for section {section_idx}"
+    })
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Section content updated.", "section_idx": section_idx}
+
+
 @app.post("/api/documents/{doc_id}/regenerate/{section_idx}")
 async def regenerate_mnemonics(doc_id: str, section_idx: int):
     p = PROCESSED_DIR / f"{doc_id}.json"
