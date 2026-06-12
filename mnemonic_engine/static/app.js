@@ -649,6 +649,7 @@ function renderDocument() {
                 </div>
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
                     <button class="btn btn-secondary btn-sm btn-delete-section" id="btn-del-sec-${index}" data-index="${index}" style="margin-right: auto; border: 1px solid var(--border-color); color: #ff6b6b; background: transparent;">🗑️ Delete Section</button>
+                    <button class="btn btn-secondary btn-sm btn-add-section" data-index="${index}" style="border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary);">➕ Insert Section Below</button>
                     <button class="btn btn-primary btn-sm btn-save-source" data-index="${index}">Save Source</button>
                 </div>
             </div>
@@ -682,6 +683,7 @@ function renderDocument() {
 
         div.querySelector('.btn-save-source').onclick = () => saveSectionSource(index);
         div.querySelector('.btn-delete-section').onclick = () => deleteSection(index);
+        div.querySelector('.btn-add-section').onclick = () => createSection(index);
 
         // Bind Mnemonic Buttons
         div.querySelector('.btn-save-section').onclick = () => saveMnemonics(index);
@@ -689,6 +691,17 @@ function renderDocument() {
 
         sectionsList.appendChild(div);
     });
+
+    // Add global 'Add Section to End' button
+    const isEditing = document.body.classList.contains('editing-mode');
+    const addGlobalDiv = document.createElement('div');
+    addGlobalDiv.className = `global-add-section-container ${isEditing ? '' : 'hidden'}`;
+    addGlobalDiv.style.textAlign = 'center';
+    addGlobalDiv.style.marginTop = '2rem';
+    addGlobalDiv.innerHTML = `<button class="btn btn-secondary btn-sm" id="btn-add-section-global" style="padding: 0.75rem 2rem; font-size: 1rem; border: 1px dashed var(--border-color); background: transparent; color: var(--text-secondary);">➕ Add New Section to End</button>`;
+    
+    addGlobalDiv.querySelector('#btn-add-section-global').onclick = () => createSection(-1);
+    sectionsList.appendChild(addGlobalDiv);
     
     // ─── Bind all sidebar actions ───
     document.getElementById('btn-export').onclick = () => exportDocument(doc.id);
@@ -805,6 +818,24 @@ async function deleteSection(idx) {
         if (!res.ok) throw new Error('Failed to delete section');
         
         showToast('Section deleted successfully', 'success');
+        await loadDocument(currentDocument.id); // Reload the whole doc
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function createSection(afterIdx) {
+    if (!currentDocument) return;
+    
+    try {
+        const res = await fetch(`/api/documents/${currentDocument.id}/sections`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ insert_after_idx: afterIdx })
+        });
+        if (!res.ok) throw new Error('Failed to create section');
+        
+        showToast('Section created successfully', 'success');
         await loadDocument(currentDocument.id); // Reload the whole doc
     } catch (e) {
         showToast(e.message, 'error');

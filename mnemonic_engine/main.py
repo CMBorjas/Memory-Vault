@@ -220,6 +220,9 @@ class SectionContentUpdate(BaseModel):
     title: str
     content: str
 
+class NewSectionRequest(BaseModel):
+    insert_after_idx: int = -1
+
 @app.put("/api/documents/{doc_id}/sections/{section_idx}/content")
 async def update_section_content(doc_id: str, section_idx: int, update: SectionContentUpdate):
     p = PROCESSED_DIR / f"{doc_id}.json"
@@ -267,6 +270,43 @@ async def delete_section(doc_id: str, section_idx: int):
     with open(p, "w") as f:
         json.dump(doc, f, indent=2)
     return {"message": "Section deleted successfully."}
+
+@app.post("/api/documents/{doc_id}/sections")
+async def create_section(doc_id: str, req: NewSectionRequest):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+        
+    new_section = {
+        "title": "New Section",
+        "content": "",
+        "mnemonics": {
+            "acronym": "",
+            "visual": "",
+            "scent": "",
+            "logic": ""
+        }
+    }
+    
+    idx = req.insert_after_idx
+    if idx >= 0 and idx < len(doc.get("sections", [])):
+        doc.setdefault("sections", []).insert(idx + 1, new_section)
+    else:
+        doc.setdefault("sections", []).append(new_section)
+        
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": "Added a new section"
+    })
+    
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Section added successfully."}
 
 @app.post("/api/documents/{doc_id}/regenerate/{section_idx}")
 async def regenerate_mnemonics(doc_id: str, section_idx: int):

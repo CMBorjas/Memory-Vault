@@ -680,14 +680,18 @@ body.editing-mode .bs-breadcrumb {
 }
 
 .bs-list-item__body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  display: block;
   border-top: 1px dashed var(--border-color);
   padding-top: 1rem;
 }
+
+body.editing-mode .bs-list-item__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
 @media (max-width: 1000px) {
-  .bs-list-item__body { grid-template-columns: 1fr; }
+  body.editing-mode .bs-list-item__body { grid-template-columns: 1fr; }
 }
 
 .bs-list-item__content {
