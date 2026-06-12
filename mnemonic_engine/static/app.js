@@ -636,7 +636,6 @@ function renderDocument() {
                     <div class="bs-list-item__title" id="section-title-view-${index}">${section.title}</div>
                     <div class="bs-list-item__summary" id="section-summary-view-${index}">${summary}</div>
                 </div>
-                <button class="btn btn-secondary btn-sm btn-edit-source" data-index="${index}" title="Edit Source Text">✎</button>
             </div>
             
             <!-- Source Text Editing Form -->
@@ -650,7 +649,6 @@ function renderDocument() {
                     <textarea class="form-control" id="edit-section-content-${index}" style="min-height: 200px; resize: vertical;">${esc(section.content)}</textarea>
                 </div>
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
-                    <button class="btn btn-link btn-sm btn-cancel-source" data-index="${index}">Cancel</button>
                     <button class="btn btn-primary btn-sm btn-save-source" data-index="${index}">Save Source</button>
                 </div>
             </div>
@@ -681,21 +679,7 @@ function renderDocument() {
                 </div>
             </div>
         `;
-        // Bind Source Edit Buttons
-        div.querySelector('.btn-edit-source').onclick = () => {
-            document.getElementById(`section-title-view-${index}`).parentElement.classList.add('hidden');
-            document.getElementById(`section-content-view-${index}`).classList.add('hidden');
-            document.getElementById(`section-source-edit-${index}`).classList.remove('hidden');
-            div.querySelector('.btn-edit-source').classList.add('hidden');
-        };
-        
-        div.querySelector('.btn-cancel-source').onclick = () => {
-            document.getElementById(`section-title-view-${index}`).parentElement.classList.remove('hidden');
-            document.getElementById(`section-content-view-${index}`).classList.remove('hidden');
-            document.getElementById(`section-source-edit-${index}`).classList.add('hidden');
-            div.querySelector('.btn-edit-source').classList.remove('hidden');
-        };
-        
+
         div.querySelector('.btn-save-source').onclick = () => saveSectionSource(index);
 
         // Bind Mnemonic Buttons
@@ -879,13 +863,29 @@ async function toggleFavourite(id) {
 
 function toggleEditMode() {
     const mnemonicsBlocks = document.querySelectorAll('.bs-list-item__mnemonics');
+    const sourceEditBlocks = document.querySelectorAll('.bs-list-item__source-edit');
+    const contentViewBlocks = document.querySelectorAll('.bs-list-item__content');
+    const headerTitleBlocks = document.querySelectorAll('.bs-list-item__header > div');
     const btn = document.getElementById('btn-edit-toggle');
     
     const isCurrentlyHidden = mnemonicsBlocks[0]?.style.display === 'none' || mnemonicsBlocks[0]?.style.display === '';
     const turnOn = isCurrentlyHidden;
 
-    mnemonicsBlocks.forEach(block => {
-        block.style.display = turnOn ? 'block' : 'none';
+    mnemonicsBlocks.forEach(block => block.style.display = turnOn ? 'block' : 'none');
+    
+    sourceEditBlocks.forEach(block => {
+        if (turnOn) block.classList.remove('hidden');
+        else block.classList.add('hidden');
+    });
+    
+    contentViewBlocks.forEach(block => {
+        if (turnOn) block.classList.add('hidden');
+        else block.classList.remove('hidden');
+    });
+
+    headerTitleBlocks.forEach(block => {
+        if (turnOn) block.classList.add('hidden');
+        else block.classList.remove('hidden');
     });
 
     const body = document.body;
