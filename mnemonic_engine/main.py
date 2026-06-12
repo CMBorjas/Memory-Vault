@@ -89,7 +89,7 @@ async def update_book_profile(book_name: str, profile: dict):
             current_profile[k] = profile[k]
 
     # Save to yaml file
-    config_path = BASE_DIR / "book_config.yml"
+    config_path = CONFIG_PATH
     
     # Preserve the nice header comment
     header = """# ╔══════════════════════════════════════════════════════════════╗

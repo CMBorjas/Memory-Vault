@@ -7,85 +7,101 @@
 
 books:
   Networking:
-    kingdom: Amphibians
-    aesthetic: "Withering/Decaying"
-    scent_primary: Ambrosia
-    scent_secondary: Ammonia
-    color_palette: ["#658496", "#4A5A6B", "#8AA8BA"]
+    kingdom: Otter
+    aesthetic: decrepited
+    scent_primary: Orange
+    scent_secondary: Ozone
+    color_palette:
+    - '#658496'
+    - '#4A5A6B'
+    - '#8AA8BA'
     visual_keywords:
-      - translucent newts
-      - rotting lilies
-      - bruised skin
-      - tearing membranes
-      - continental bridges
-    sensory_description: >
-      The heavy, suffocatingly sweet smell of wilting funeral flowers
-      mixed with the sharp, eye-watering ammonia of a reptile tank
-      that hasn't been cleaned in months.
+    - translucent newts
+    - rotting lilies
+    - bruised skin
+    - tearing membranes
+    - continental bridges
+    sensory_description: 'The heavy, suffocatingly sweet smell of wilting funeral
+      flowers mixed with the sharp, eye-watering ammonia of a reptile tank that hasn''t
+      been cleaned in months.
 
+      '
+    mc_profile: Lizard
+    plot: Basking
   Databases:
     kingdom: Insects
-    aesthetic: "Chitinous/Swarming"
+    aesthetic: Chitinous/Swarming
     scent_primary: Ozone
     scent_secondary: Sulfur
-    color_palette: ["#D6CDB8", "#F2E9D8", "#A8A092"]
+    color_palette:
+    - '#D6CDB8'
+    - '#F2E9D8'
+    - '#A8A092'
     visual_keywords:
-      - chitinous exoskeletons
-      - swarming columns
-      - compound eyes
-      - mandible clicks
-      - hive lattices
-    sensory_description: >
-      The sharp, metallic tang of ozone after a lightning strike
-      layered with the nauseating rotten-egg thickness of sulfur
-      seeping from cracked volcanic vents.
+    - chitinous exoskeletons
+    - swarming columns
+    - compound eyes
+    - mandible clicks
+    - hive lattices
+    sensory_description: 'The sharp, metallic tang of ozone after a lightning strike
+      layered with the nauseating rotten-egg thickness of sulfur seeping from cracked
+      volcanic vents.
 
+      '
   Cybersecurity:
     kingdom: Fungi
-    aesthetic: "Parasitic/Spores"
+    aesthetic: Parasitic/Spores
     scent_primary: Truffle
     scent_secondary: Damp Copper
-    color_palette: ["#855436", "#6e4f3a", "#A67645"]
+    color_palette:
+    - '#855436'
+    - '#6e4f3a'
+    - '#A67645'
     visual_keywords:
-      - parasitic tendrils
-      - spore clouds
-      - mycelium networks
-      - decomposing hosts
-      - bioluminescent caps
-    sensory_description: >
-      The earthy, almost sexual richness of black truffle
-      fighting the cold, mineral taste of damp copper pennies
-      left in a flooded basement.
+    - parasitic tendrils
+    - spore clouds
+    - mycelium networks
+    - decomposing hosts
+    - bioluminescent caps
+    sensory_description: 'The earthy, almost sexual richness of black truffle fighting
+      the cold, mineral taste of damp copper pennies left in a flooded basement.
 
+      '
   Operating_Systems:
     kingdom: Arachnids
-    aesthetic: "Webbing/Lurking"
+    aesthetic: Webbing/Lurking
     scent_primary: Petrichor
     scent_secondary: Formaldehyde
-    color_palette: ["#9A8262", "#B88D67", "#D1A775"]
+    color_palette:
+    - '#9A8262'
+    - '#B88D67'
+    - '#D1A775'
     visual_keywords:
-      - silk threading
-      - lurking shadows
-      - segmented legs
-      - vibrating webs
-      - cocooned processes
-    sensory_description: >
-      The clean, ancient smell of rain on hot stone mixed with
+    - silk threading
+    - lurking shadows
+    - segmented legs
+    - vibrating webs
+    - cocooned processes
+    sensory_description: 'The clean, ancient smell of rain on hot stone mixed with
       the sharp, preserving sting of formaldehyde in a specimen jar.
 
+      '
   Algorithms:
     kingdom: Cephalopods
-    aesthetic: "Shifting/Ink-Cloud"
+    aesthetic: Shifting/Ink-Cloud
     scent_primary: Brine
     scent_secondary: Iodine
-    color_palette: ["#3F4C5C", "#27323A", "#5D7482"]
+    color_palette:
+    - '#3F4C5C'
+    - '#27323A'
+    - '#5D7482'
     visual_keywords:
-      - chromatophore pulses
-      - tentacle branching
-      - ink explosions
-      - sucker patterns
-      - depth pressure
-    sensory_description: >
-      The overwhelming salt-rot of a tide pool at noon
-      mingled with the medicinal, throat-coating burn of iodine
-      swabbed on an open wound.
+    - chromatophore pulses
+    - tentacle branching
+    - ink explosions
+    - sucker patterns
+    - depth pressure
+    sensory_description: 'The overwhelming salt-rot of a tide pool at noon mingled
+      with the medicinal, throat-coating burn of iodine swabbed on an open wound.
+
+      '
