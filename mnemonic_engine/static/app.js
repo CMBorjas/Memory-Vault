@@ -626,20 +626,22 @@ function renderDocument() {
         div.className = 'bs-list-item';
         div.style.borderLeftColor = doc.profile ? doc.profile.color_palette[0] : 'var(--color-primary)';
         
+        const isEditing = document.body.classList.contains('editing-mode');
+
         // Escape quotes to prevent HTML injection in inputs
         const esc = (str) => (str || '').replace(/"/g, '&quot;');
         const summary = section.content.substring(0, 150) + '...';
 
         div.innerHTML = `
             <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
+                <div class="${isEditing ? 'hidden' : ''}">
                     <div class="bs-list-item__title" id="section-title-view-${index}">${section.title}</div>
                     <div class="bs-list-item__summary" id="section-summary-view-${index}">${summary}</div>
                 </div>
             </div>
             
             <!-- Source Text Editing Form -->
-            <div class="bs-list-item__source-edit hidden" id="section-source-edit-${index}" style="padding: 1rem; background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+            <div class="bs-list-item__source-edit ${isEditing ? '' : 'hidden'}" id="section-source-edit-${index}" style="padding: 1rem; background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
                 <div class="form-group">
                     <label>Section Title</label>
                     <input type="text" class="form-control" id="edit-section-title-${index}" value="${esc(section.title)}">
@@ -654,8 +656,8 @@ function renderDocument() {
             </div>
 
             <div class="bs-list-item__body">
-                <div class="bs-list-item__content" id="section-content-view-${index}">${section.content}</div>
-                <div class="bs-list-item__mnemonics">
+                <div class="bs-list-item__content ${isEditing ? 'hidden' : ''}" id="section-content-view-${index}">${section.content}</div>
+                <div class="bs-list-item__mnemonics" style="display: ${isEditing ? 'block' : 'none'}">
                     <div class="mnemonic-field">
                         <label class="mnemonic-field__label">Acronym Anchor</label>
                         <textarea class="mnemonic-field__input" data-field="acronym" data-index="${index}">${section.mnemonics?.acronym || ''}</textarea>
