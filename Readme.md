@@ -5,7 +5,7 @@
 
 ---
 
-## 🖥️ This README — Desktop (Local) Version
+## This README — Desktop (Local) Version
 
 This is the **full private README** for running AGKE on your local Arch Garuda Linux machine. It contains Docker setup, absolute paths, and internal tooling details.
 
@@ -25,7 +25,7 @@ The system maintains notes in two formats:
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -48,15 +48,15 @@ To handle book-scale documents without server overloading, splitting is performe
 > **User Choice:** Before ingestion, you can either split the PDF yourself and upload chapter-by-chapter, or use the built-in Slicer Workspace to do it interactively in the browser.
 
 ### 2. Mnemonic Generation Pipeline
-The core Python application in [mnemonic_engine/](./mnemonic_engine/) generates anchors using profiles in [book_config.yml](./mnemonic_engine/book_config.yml). Each epoch/subject has distinct properties:
+The core Python application in [mnemonic_engine/](./mnemonic_engine/) generates anchors using profiles in [book_config.yml](./mnemonic_engine/book_config.yml). Each epoch/subject has distinct properties, each property but subject is generated and user approved before mnemonic generation:
 
-| Subject | Biological Kingdom | Visual Aesthetic | Primary Scent | Secondary Scent | MC / Narrative Profile |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Networking** | Otters | Withering / Decaying | Ambrosia | Ammonia | *Newt* (Space Operetta) |
-| **Databases** | Insects | Chitinous / Swarming | Ozone | Sulfur | *Draven* (Cyberpunk) |
-| **Cybersecurity** | Fungi | Parasitic / Spores | Truffle | Damp Copper | *Calyra* (Survival Horror) |
-| **Algorithms** | Cephalopods | Shifting / Ink-Cloud | Brine | Iodine | *Cosmic horror protagonist* |
-| **Operating Systems** | Arachnids | Webbing / Lurking | Petrichor | Formaldehyde | *Gothic horror protagonist* |
+| Subject | Biological Kingdom animal | Visual Aesthetic | Primary Scent | Secondary Scent | MC / Narrative Profile | plot |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Networking +** | Amphibians / Otters | Withering / Decaying | Ambrosia | Ammonia | *Newt* (Space Operetta) | Controlling planet for drug runs in space |
+| **Databases (Under Construction)** | Insects | Chitinous / Swarming | Ozone | Sulfur | *Draven* (Cyberpunk) | (tbd) |
+| **Cybersecurity (Under Construction)** | Fungi | Parasitic / Spores | Truffle | Damp Copper | *Calyra* (Survival Horror) | (tbd) |
+| **Algorithms (Under Construction)** | Cephalopods | Shifting / Ink-Cloud | Brine | Iodine | *Cosmic horror protagonist* | (tbd) |
+| **Operating Systems (Under Construction)** | Arachnids | Webbing / Lurking | Petrichor | Formaldehyde | *Gothic horror protagonist* | (tbd) |
 
 ---
 
@@ -73,7 +73,7 @@ source_page: 3
 created_at: 2026-06-11T15:42:00Z
 ---
 
-> [!info] 📚 **Book:** [[_index|CompTIA Network+ Study Guide]]
+> [!info] **Book:** [[_index|CompTIA Network+ Study Guide]]
 > **Chapter:** The Layered Approach | **Page:** 3
 
 # The Layered Approach
@@ -84,7 +84,7 @@ created_at: 2026-06-11T15:42:00Z
 
 ---
 
-> [!abstract]- 🧠 Memory Anchor: Translucent newts Layered Approach
+> [!abstract]- Memory Anchor: Translucent newts Layered Approach
 > **Kingdom:** Amphibians
 > 
 > **The Imagery:**
@@ -146,8 +146,11 @@ docker compose up -d --build
 
 ## 📚 Ingesting a New Book
 
-### Option A — Pre-split Before Upload (Recommended for large PDFs)
-Split your PDF into chapter-sized files yourself (e.g., using `pdftk` or any PDF editor) before uploading:
+### Option A — Local Batch Ingest (Fastest — pre-split already done)
+Click **⚡ Load All Networking Chapters** in the Upload view. The engine reads the 25 pre-split Sybex chapter PDFs directly from disk and assigns rigid canonical names (`Chapter 01 — Introduction to Networks`, etc.). No manual upload required.
+
+### Option B — Pre-split Before Upload
+Split your PDF into chapter-sized files yourself (e.g., using `pdftk`) before uploading:
 
 ```bash
 pdftk source.pdf cat 1-30 output chapter_01.pdf
@@ -155,7 +158,7 @@ pdftk source.pdf cat 31-55 output chapter_02.pdf
 # ...then upload each file via the web GUI
 ```
 
-### Option B — Use the Built-in Interactive Slicer
+### Option C — Use the Built-in Interactive Slicer
 Upload the full PDF to the GUI and use the **Slicer Workspace** to:
 1. Inspect the auto-extracted Table of Contents (bookmarks).
 2. Preview page thumbnails and adjust chapter boundaries visually.
@@ -172,6 +175,7 @@ Upload the full PDF to the GUI and use the **Slicer Workspace** to:
 * **PDF OCR Engine:** PyMuPDF (`fitz`), Tesseract OCR (Fallback for scanned pages)
 * **Containerization:** Docker & Docker Compose
 * **Note Format:** Obsidian Markdown with collapsible callouts (`[!abstract]-`)
+* **Notifications:** Web Notifications API (browser popup on ingest completion)
 
 ---
 

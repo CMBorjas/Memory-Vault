@@ -6,6 +6,10 @@ let currentDocument = null;
 let bookProfiles = {};
 let selectedBook = 'Networking';
 
+// Notification state — tracks when a job finishes so we can alert the user
+let _wasProcessing = false;
+let _lastCompletedJob = null;
+
 // Slicer Workspace State
 let currentPdfFile = null;
 let currentPdfDoc = null;
@@ -18,13 +22,38 @@ let slicerThumbnailScale = 1.0;
 document.addEventListener('DOMContentLoaded', async () => {
     setupNavigation();
     setupUploadZone();
-    
+    requestNotificationPermission();
+
     await checkEngineStatus();
     await loadBooks();
     await loadLibrary();
-    
+
     startGlobalProgressPolling();
 });
+
+// ═══ Desktop / Browser Notifications ═══
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function fireCompletionNotification(title, body) {
+    // 1. In-app toast (always works)
+    showToast(body, 'success');
+
+    // 2. Browser Web Notification (shows as OS system popup)
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const n = new Notification(title, {
+            body,
+            icon: '/static/icon.png',
+            tag: 'agke-ingest-complete',   // deduplicate repeated firings
+            requireInteraction: false,
+        });
+        // Auto-close after 8 seconds
+        setTimeout(() => n.close(), 8000);
+    }
+}
 
 // ═══ Global Progress Polling ═══
 function startGlobalProgressPolling() {
@@ -39,7 +68,31 @@ function startGlobalProgressPolling() {
                 
                 if (data.status === 'idle') {
                     if (gp) gp.style.display = 'none';
+
+                    // ── Completion notification ──────────────────────────
+                    // Fire once when we transition FROM an active job TO idle
+                    if (_wasProcessing) {
+                        _wasProcessing = false;
+                        const jobLabel = _lastCompletedJob || 'Processing';
+                        _lastCompletedJob = null;
+
+                        // Refresh library so new chapters appear immediately
+                        loadLibrary();
+
+                        fireCompletionNotification(
+                            '✅ Memory Vault — Ingest Complete',
+                            `${jobLabel} finished. Your library has been updated.`
+                        );
+                    }
                 } else {
+                    _wasProcessing = true;
+                    // Track the job label for the completion message
+                    if (data.status === 'batch') {
+                        _lastCompletedJob = `Batch ingest (${data.total_files} chapters)`;
+                    } else if (data.filename) {
+                        _lastCompletedJob = data.filename;
+                    }
+
                     if (gp) gp.style.display = 'flex';
                     let pct = 0;
                     if (data.status === 'extracting') {
@@ -50,8 +103,8 @@ function startGlobalProgressPolling() {
                         pct = Math.floor((data.current_file / data.total_files) * 100);
                     }
                     if (fill) fill.style.width = pct + '%';
-                    if (text) text.textContent = data.message || `Processing...`;
-                    
+                    if (text) text.textContent = data.message || 'Processing...';
+
                     // Also sync local upload UI if visible
                     const localFill = document.getElementById('progress-fill');
                     const localText = document.getElementById('progress-text');
@@ -169,19 +222,114 @@ function renderProfilesGrid() {
         const card = document.createElement('div');
         card.className = 'profile-card';
         card.style.setProperty('--card-color', color);
+        card.dataset.book = name;
         
+        // Escape quotes to prevent HTML injection in inputs
+        const esc = (str) => (str || '').replace(/"/g, '&quot;');
+
         card.innerHTML = `
-            <div class="profile-card__header">
-                <h3 style="color: ${color}">${name.replace('_', ' ')}</h3>
+            <div class="profile-card__header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: ${color}; margin: 0;">${name.replace('_', ' ')}</h3>
+                <button class="btn btn-secondary btn-sm edit-profile-btn" data-book="${name}">⚙ Edit</button>
             </div>
-            <div class="profile-card__body">
-                <p><strong>Kingdom:</strong> ${profile.kingdom}</p>
-                <p><strong>Aesthetic:</strong> ${profile.aesthetic}</p>
-                <p><strong>Scent:</strong> ${profile.scent_primary} + ${profile.scent_secondary}</p>
+            
+            <div class="profile-card__body profile-view" id="profile-view-${name}">
+                <p><strong>Kingdom:</strong> ${esc(profile.kingdom)}</p>
+                <p><strong>Aesthetic:</strong> ${esc(profile.aesthetic)}</p>
+                <p><strong>Scent:</strong> ${esc(profile.scent_primary)} + ${esc(profile.scent_secondary)}</p>
+                <p><strong>MC Profile:</strong> ${esc(profile.mc_profile)}</p>
+                <p><strong>Plot:</strong> ${esc(profile.plot)}</p>
+            </div>
+            
+            <div class="profile-card__body profile-edit hidden" id="profile-edit-${name}" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Kingdom</label>
+                    <input type="text" id="edit-kingdom-${name}" value="${esc(profile.kingdom)}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Aesthetic</label>
+                    <input type="text" id="edit-aesthetic-${name}" value="${esc(profile.aesthetic)}" class="form-control">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Primary Scent</label>
+                        <input type="text" id="edit-scent1-${name}" value="${esc(profile.scent_primary)}" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Secondary Scent</label>
+                        <input type="text" id="edit-scent2-${name}" value="${esc(profile.scent_secondary)}" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>MC Profile</label>
+                    <input type="text" id="edit-mc-${name}" value="${esc(profile.mc_profile)}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Plot</label>
+                    <input type="text" id="edit-plot-${name}" value="${esc(profile.plot)}" class="form-control">
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button class="btn btn-link btn-sm cancel-profile-btn" data-book="${name}">Cancel</button>
+                    <button class="btn btn-primary btn-sm save-profile-btn" data-book="${name}">Save</button>
+                </div>
             </div>
         `;
         grid.appendChild(card);
     }
+
+    // Attach event listeners for editing
+    document.querySelectorAll('.edit-profile-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const book = e.currentTarget.dataset.book;
+            document.getElementById(`profile-view-${book}`).classList.add('hidden');
+            document.getElementById(`profile-edit-${book}`).classList.remove('hidden');
+            e.currentTarget.classList.add('hidden');
+        });
+    });
+
+    document.querySelectorAll('.cancel-profile-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const book = e.currentTarget.dataset.book;
+            document.getElementById(`profile-edit-${book}`).classList.add('hidden');
+            document.getElementById(`profile-view-${book}`).classList.remove('hidden');
+            document.querySelector(`.edit-profile-btn[data-book="${book}"]`).classList.remove('hidden');
+        });
+    });
+
+    document.querySelectorAll('.save-profile-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const book = e.currentTarget.dataset.book;
+            const payload = {
+                kingdom: document.getElementById(`edit-kingdom-${book}`).value,
+                aesthetic: document.getElementById(`edit-aesthetic-${book}`).value,
+                scent_primary: document.getElementById(`edit-scent1-${book}`).value,
+                scent_secondary: document.getElementById(`edit-scent2-${book}`).value,
+                mc_profile: document.getElementById(`edit-mc-${book}`).value,
+                plot: document.getElementById(`edit-plot-${book}`).value
+            };
+            
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+                
+                const res = await fetch(`/api/books/${book}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error('Failed to save profile');
+                showToast('Profile updated successfully', 'success');
+                
+                // Refresh data
+                await loadBooks();
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Save';
+            }
+        });
+    });
 }
 
 function setupUploadZone() {
@@ -221,26 +369,107 @@ async function handleUpload(file) {
     openSlicerWorkspace(file);
 }
 
+// ═══ Batch Local Ingest (pre-split Sybex chapters) ═══
+async function ingestLocalChapters() {
+    const btn = document.getElementById('btn-ingest-local');
+    if (btn) { btn.disabled = true; btn.textContent = 'Ingesting\u2026'; }
+
+    showToast('Starting batch ingest of all 25 Networking chapters\u2026', 'info');
+
+    try {
+        const res = await fetch('/api/ingest-local?book=Networking&start=1&end=25', { method: 'POST' });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showToast(data.detail || 'Ingest failed', 'error');
+        } else {
+            const count = data.ingested?.length ?? 0;
+            const skipped = data.skipped?.length ?? 0;
+            showToast(`Batch ingest complete: ${count} chapters ingested, ${skipped} skipped.`, 'success');
+            await loadLibrary();
+            switchView('library');
+        }
+    } catch (e) {
+        showToast('Ingest request failed: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '\u26a1 Load All Networking Chapters'; }
+    }
+}
+
 // ═══ Library & Document ═══
 async function loadLibrary() {
     try {
-        const res = await fetch('/api/documents');
-        const docs = await res.json();
+        const res = await fetch('/api/textbooks');
+        const data = await res.json();
         
-        document.getElementById('doc-count').textContent = `${docs.length} documents`;
+        // Calculate total docs
+        let docCount = data.loose.length;
+        data.textbooks.forEach(tb => docCount += tb.chapter_count);
+        document.getElementById('doc-count').textContent = `${docCount} documents`;
+
         const grid = document.getElementById('library-grid');
         const empty = document.getElementById('library-empty');
         
         grid.innerHTML = '';
         
-        if (docs.length === 0) {
+        if (docCount === 0) {
             empty.classList.remove('hidden');
             return;
         }
         
         empty.classList.add('hidden');
         
-        docs.forEach(doc => {
+        // 1. Render Grouped Textbooks
+        data.textbooks.forEach(tb => {
+            const profile = bookProfiles[tb.book] || {};
+            const color = profile.color_palette?.[0] || 'var(--color-primary)';
+            
+            const card = document.createElement('div');
+            card.className = 'doc-card textbook-card';
+            card.style.borderLeft = `4px solid ${color}`;
+            
+            card.innerHTML = `
+                <div class="doc-card__meta">
+                    <span class="doc-card__chapter-badge" style="background: ${color}">${tb.chapter_count} Chapters</span>
+                    <span>${tb.total_sections} sections</span>
+                </div>
+                <div class="doc-card__title" title="${tb.textbook}">${tb.textbook}</div>
+                <div class="doc-card__tag" style="color: ${color}">${tb.book.replace('_', ' ')}</div>
+                
+                <div class="textbook-chapters hidden">
+                    <!-- Populated via JS below -->
+                </div>
+            `;
+            
+            // Setup expand/collapse logic for chapters
+            const chList = card.querySelector('.textbook-chapters');
+            card.addEventListener('click', (e) => {
+                // If they clicked a chapter directly, don't toggle
+                if (e.target.closest('.textbook-chapter-item')) return;
+                chList.classList.toggle('hidden');
+            });
+
+            // Populate chapters inside the card
+            tb.chapters.forEach(ch => {
+                const chItem = document.createElement('div');
+                chItem.className = 'textbook-chapter-item';
+                chItem.innerHTML = `
+                    <span class="ch-num">Ch. ${String(ch.chapter_number).padStart(2, '0')}</span>
+                    <span class="ch-title" title="${ch.chapter_title}">${ch.chapter_title}</span>
+                    <span class="ch-sections">${ch.section_count} sec</span>
+                `;
+                chItem.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent card toggle
+                    loadDocument(ch.id);
+                });
+                chList.appendChild(chItem);
+            });
+            
+            grid.appendChild(card);
+        });
+
+        // 2. Render Loose Documents
+        data.loose.forEach(doc => {
             const profile = bookProfiles[doc.book] || {};
             const color = profile.color_palette?.[0] || 'var(--border)';
             
@@ -251,10 +480,10 @@ async function loadLibrary() {
             
             card.innerHTML = `
                 <div class="doc-card__meta">
-                    <span>${date}</span>
+                    ${doc.chapter_number ? `<span class="doc-card__chapter-badge">Ch. ${String(doc.chapter_number).padStart(2,'0')}</span>` : `<span>${date}</span>`}
                     <span>${doc.section_count} sections</span>
                 </div>
-                <div class="doc-card__title" title="${doc.filename}">${doc.filename}</div>
+                <div class="doc-card__title" title="${doc.chapter_title || doc.filename}">${doc.chapter_title || doc.filename}</div>
                 <div class="doc-card__tag" style="color: ${color}">${doc.book.replace('_', ' ')}</div>
             `;
             
@@ -264,6 +493,7 @@ async function loadLibrary() {
         
     } catch (e) {
         showToast('Failed to load library', 'error');
+        console.error(e);
     }
 }
 
@@ -286,7 +516,10 @@ function renderDocument() {
     
     const doc = currentDocument;
     const profile = bookProfiles[doc.book] || {};
-    const displayTitle = doc.filename || doc.title || 'Untitled';
+    // Use canonical chapter title when available, fall back to filename
+    const displayTitle = doc.chapter_number
+        ? `Chapter ${String(doc.chapter_number).padStart(2,'0')} \u2014 ${doc.chapter_title}`
+        : (doc.title || doc.filename || 'Untitled');
     document.getElementById('breadcrumb-title').textContent = displayTitle;
     
     document.getElementById('doc-header').innerHTML = `

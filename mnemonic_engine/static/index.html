@@ -157,6 +157,28 @@
                     </div>
                 </div>
 
+                <!-- ═══ Batch Local Ingest Panel ═══ -->
+                <div class="local-ingest-panel">
+                    <div class="local-ingest-panel__header">
+                        <div class="local-ingest-panel__icon">📚</div>
+                        <div>
+                            <h3>Load Networking Chapters</h3>
+                            <p class="text-muted">Ingest all 25 pre-split Sybex CompTIA Network+ chapters from the local upload directory. Each chapter will be assigned a rigid canonical name matching the textbook structure.</p>
+                        </div>
+                    </div>
+                    <div class="local-ingest-panel__chapters">
+                        <code>Chapter 01 — Introduction to Networks</code>
+                        <code>Chapter 02 — The Open Systems Interconnection Specifications</code>
+                        <code>Chapter 03 — Networking Connectors and Wiring Standards</code>
+                        <span class="text-muted">… through Chapter 25 — Network Hardening</span>
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="btn-ingest-local" onclick="ingestLocalChapters()">
+                        ⚡ Load All Networking Chapters
+                    </button>
+                </div>
+
+                <div class="upload-divider"><span>— or upload a single PDF manually —</span></div>
+
                 <div class="upload-progress hidden" id="upload-progress">
                     <div class="upload-progress__bar">
                         <div class="upload-progress__fill" id="progress-fill"></div>
