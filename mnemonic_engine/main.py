@@ -244,6 +244,29 @@ async def update_section_content(doc_id: str, section_idx: int, update: SectionC
         json.dump(doc, f, indent=2)
     return {"message": "Section content updated.", "section_idx": section_idx}
 
+@app.delete("/api/documents/{doc_id}/sections/{section_idx}")
+async def delete_section(doc_id: str, section_idx: int):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    if section_idx < 0 or section_idx >= len(doc["sections"]):
+        raise HTTPException(status_code=400, detail="Invalid section index.")
+    
+    deleted_section_title = doc["sections"][section_idx]["title"]
+    del doc["sections"][section_idx]
+    
+    now = datetime.now().isoformat()
+    doc["updated_at"] = now
+    doc["revision"] = doc.get("revision", 1) + 1
+    doc.setdefault("revisions", []).append({
+        "revision": doc["revision"], "timestamp": now,
+        "summary": f"Deleted section {section_idx} ({deleted_section_title})"
+    })
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Section deleted successfully."}
 
 @app.post("/api/documents/{doc_id}/regenerate/{section_idx}")
 async def regenerate_mnemonics(doc_id: str, section_idx: int):

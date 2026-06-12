@@ -648,6 +648,7 @@ function renderDocument() {
                     <textarea class="form-control" id="edit-section-content-${index}" style="min-height: 200px; resize: vertical;">${esc(section.content)}</textarea>
                 </div>
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm btn-delete-section" id="btn-del-sec-${index}" data-index="${index}" style="margin-right: auto; border: 1px solid var(--border-color); color: #ff6b6b; background: transparent;">🗑️ Delete Section</button>
                     <button class="btn btn-primary btn-sm btn-save-source" data-index="${index}">Save Source</button>
                 </div>
             </div>
@@ -680,6 +681,7 @@ function renderDocument() {
         `;
 
         div.querySelector('.btn-save-source').onclick = () => saveSectionSource(index);
+        div.querySelector('.btn-delete-section').onclick = () => deleteSection(index);
 
         // Bind Mnemonic Buttons
         div.querySelector('.btn-save-section').onclick = () => saveMnemonics(index);
@@ -767,6 +769,43 @@ async function saveSectionSource(idx) {
         
         showToast('Source text updated', 'success');
         await loadDocument(currentDocument.id); // Reload the whole doc to reflect changes
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function deleteSection(idx) {
+    if (!currentDocument) return;
+    
+    const btn = document.getElementById(`btn-del-sec-${idx}`);
+    if (btn && !btn.classList.contains('confirming-delete')) {
+        btn.classList.add('confirming-delete');
+        btn.innerHTML = '⚠️ Click to Confirm Delete';
+        btn.style.color = '#fff';
+        btn.style.background = '#ff4757';
+        btn.style.borderColor = '#ff4757';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+            if (btn) {
+                btn.classList.remove('confirming-delete');
+                btn.innerHTML = '🗑️ Delete Section';
+                btn.style.color = '#ff6b6b';
+                btn.style.background = 'transparent';
+                btn.style.borderColor = 'var(--border-color)';
+            }
+        }, 3000);
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/documents/${currentDocument.id}/sections/${idx}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Failed to delete section');
+        
+        showToast('Section deleted successfully', 'success');
+        await loadDocument(currentDocument.id); // Reload the whole doc
     } catch (e) {
         showToast(e.message, 'error');
     }
