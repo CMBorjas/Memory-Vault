@@ -92,14 +92,14 @@ async def update_book_profile(book_name: str, profile: dict):
     config_path = BASE_DIR / "book_config.yml"
     
     # Preserve the nice header comment
-    header = \"\"\"# ╔══════════════════════════════════════════════════════════════╗
+    header = """# ╔══════════════════════════════════════════════════════════════╗
 # ║  Anti-Gravity Knowledge Engine — Book Configuration        ║
 # ║  Each book/module is assigned a biological kingdom and     ║
 # ║  sensory profile to prevent "memory bleeding" between      ║
 # ║  subjects. Mnemonics are generated using these anchors.    ║
 # ╚══════════════════════════════════════════════════════════════╝
 
-\"\"\"
+"""
     try:
         with open(config_path, "w") as f:
             f.write(header)
