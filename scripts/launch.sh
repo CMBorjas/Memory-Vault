@@ -7,6 +7,9 @@
 
 set -e
 
+# Redirect all output to a log file for debugging without process substitution blocking
+exec >>/tmp/memory-vault-launch.log 2>&1
+
 # Resolve the real path of this script, following symlinks
 # (needed when launched via ~/.local/bin/memory-vault-launch symlink)
 REAL_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -14,12 +17,16 @@ SCRIPT_DIR="$(dirname "${REAL_SCRIPT}")"
 PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
 cd "${PROJECT_ROOT}"
 
-echo "=== Starting Memory Vault ==="
+echo "=== Starting Memory Vault at $(date) ==="
 
 # 1. Check if Docker Daemon is active
 if ! systemctl is-active --quiet docker; then
-    echo "Docker service is not active. Attempting to start docker (requires sudo)..."
-    sudo systemctl start docker
+    echo "Docker service is not active. Attempting to start docker..."
+    if command -v pkexec >/dev/null 2>&1; then
+        pkexec systemctl start docker
+    else
+        sudo systemctl start docker
+    fi
 fi
 
 # 2. Check for docker compose or docker-compose command
@@ -57,6 +64,7 @@ fi
 
 # 5. Open Web GUI in default browser
 echo "Opening Web GUI..."
-xdg-open "http://localhost:8000" || echo "Failed to open browser. Please navigate to http://localhost:8000 manually."
+xdg-open "http://localhost:8000" >/dev/null 2>&1 &
+disown
 
 echo "=== Startup Complete ==="

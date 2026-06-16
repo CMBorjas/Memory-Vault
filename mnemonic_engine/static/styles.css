@@ -614,6 +614,59 @@ body.editing-mode .bs-breadcrumb {
   width: 250px;
   flex-shrink: 0;
 }
+.right-sidebar {
+  width: 300px;
+}
+
+.engine-window {
+  position: sticky;
+  top: 2rem;
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  border: 1px solid var(--border-color);
+}
+.engine-header {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+}
+.engine-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.prompt-box {
+  background: #1e1e1e;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #a9b7c6;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.prompt-highlight-constraint {
+  color: #ffc66d;
+  font-weight: bold;
+  background: rgba(255, 198, 109, 0.1);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.prompt-highlight-content {
+  color: #a5c261;
+  background: rgba(165, 194, 97, 0.1);
+}
+.prompt-highlight-title {
+  color: #cc7832;
+  font-weight: bold;
+}
 
 .doc-header-bookstack h1 {
   font-size: 2.5rem;

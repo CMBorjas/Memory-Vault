@@ -658,7 +658,10 @@ function renderDocument() {
                 <div class="bs-list-item__content ${isEditing ? 'hidden' : ''}" id="section-content-view-${index}">${section.content}</div>
                 <div class="bs-list-item__mnemonics" style="display: ${isEditing ? 'block' : 'none'}">
                     <div class="mnemonic-field">
-                        <label class="mnemonic-field__label">Acronym Anchor</label>
+                        <label class="mnemonic-field__label" style="display: flex; justify-content: space-between; align-items: center;">
+                            Acronym Anchor
+                            <button class="btn btn-secondary btn-sm btn-generate-acronym" data-index="${index}" style="padding: 0.1rem 0.5rem; font-size: 0.8rem;" title="Create mnemonic from first letter of each word in the title">Create Mnemonic from Title</button>
+                        </label>
                         <textarea class="mnemonic-field__input" data-field="acronym" data-index="${index}">${section.mnemonics?.acronym || ''}</textarea>
                     </div>
                     <div class="mnemonic-field">
@@ -688,6 +691,11 @@ function renderDocument() {
         // Bind Mnemonic Buttons
         div.querySelector('.btn-save-section').onclick = () => saveMnemonics(index);
         div.querySelector('.btn-regen-section').onclick = () => regenerateMnemonics(index);
+        div.querySelector('.btn-generate-acronym').onclick = () => generateAcronymFromTitle(index);
+        
+        // Sidebar update on focus/click
+        div.addEventListener('focusin', () => updateEngineSidebar(index));
+        div.addEventListener('click', () => updateEngineSidebar(index));
 
         sectionsList.appendChild(div);
     });
@@ -721,15 +729,89 @@ function renderDocument() {
 }
 
 // ═══ Actions ═══
+function generateAcronymFromTitle(idx) {
+    if (!currentDocument) return;
+    
+    // Ignore numeric prefixes like "1.2 " at the beginning
+    const title = currentDocument.sections[idx].title || "";
+    const cleanedTitle = title.replace(/^[\d\.]+\s*/, '');
+    
+    // Extract first letter of each word
+    const words = cleanedTitle.split(/[\s-]+/).filter(w => w.length > 0 && /[a-zA-Z]/.test(w));
+    const acronym = words.map(w => w.match(/[a-zA-Z]/)[0].toUpperCase()).join('');
+    
+    const card = document.querySelectorAll('.bs-list-item')[idx];
+    const acronymField = card.querySelector('textarea[data-field="acronym"]');
+    if (acronymField) {
+        acronymField.value = acronym;
+        // Add a small highlight effect to show it was updated
+        acronymField.style.transition = 'background-color 0.3s';
+        acronymField.style.backgroundColor = 'rgba(78, 204, 163, 0.2)';
+        setTimeout(() => acronymField.style.backgroundColor = '', 500);
+    }
+}
+
+function updateEngineSidebar(idx) {
+    if (!currentDocument || !document.body.classList.contains('editing-mode')) return;
+    
+    const section = currentDocument.sections[idx];
+    const profile = bookProfiles[currentDocument.book] || {};
+    const kingdom = profile.kingdom || 'Amphibians';
+    const aesthetic = profile.aesthetic || 'decaying';
+    const scent1 = profile.scent_primary || 'Ambrosia';
+    const scent2 = profile.scent_secondary || 'Ammonia';
+    
+    // Attempt to extract key terms
+    let terms = "Unknown";
+    if (section.key_terms && section.key_terms.length > 0) {
+        terms = section.key_terms.join(", ");
+    } else {
+        terms = section.title;
+    }
+
+    const html = `
+        <div style="margin-bottom: 1.5rem;">
+            <p style="margin: 0.25rem 0;"><strong>Kingdom Base:</strong> <span class="prompt-highlight-constraint">${kingdom}</span></p>
+            <p style="margin: 0.25rem 0;"><strong>Aesthetic Modifier:</strong> <span class="prompt-highlight-constraint">${aesthetic}</span></p>
+            <p style="margin: 0.25rem 0;"><strong>Primary Scent:</strong> <span class="prompt-highlight-constraint">${scent1}</span></p>
+            <p style="margin: 0.25rem 0;"><strong>Secondary Scent:</strong> <span class="prompt-highlight-constraint">${scent2}</span></p>
+        </div>
+        
+        <div style="margin-bottom: 0.5rem; color: #7a7a7a; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Engine Prompt Logic</div>
+        <div class="prompt-box">
+Select a <span class="prompt-highlight-constraint">${kingdom}</span> visual template.
+Format it using the action: "<span class="prompt-highlight-constraint">${aesthetic}</span>".
+
+Apply to context:
+"the <span class="prompt-highlight-content">${section.title.toLowerCase()}</span> architecture".
+
+Primary term(s) to encode:
+"<span class="prompt-highlight-title">${terms}</span>"
+
+<span style="color:#5c6370;"># Scent Anchors</span>
+Blend scent description for <span class="prompt-highlight-constraint">${scent1}</span>
+with the lingering trace of <span class="prompt-highlight-constraint">${scent2}</span>.
+        </div>
+    `;
+    
+    const display = document.getElementById('engine-prompt-display');
+    if (display) {
+        display.innerHTML = html;
+        // Small flash to indicate update
+        display.style.opacity = '0.5';
+        setTimeout(() => display.style.opacity = '1', 150);
+    }
+}
+
 async function saveMnemonics(idx) {
     if (!currentDocument) return;
     
-    const card = document.querySelectorAll('.section-card')[idx];
+    const card = document.querySelectorAll('.bs-list-item')[idx];
     const mnemonics = {
-        acronym: card.querySelector('.m-acronym').value,
-        visual_anchor: card.querySelector('.m-visual').value,
-        scent_anchor: card.querySelector('.m-scent').value,
-        logic_link: card.querySelector('.m-logic').value,
+        acronym: card.querySelector('.mnemonic-field__input[data-field="acronym"]').value,
+        visual_anchor: card.querySelector('.mnemonic-field__input[data-field="visual"]').value,
+        scent_anchor: card.querySelector('.mnemonic-field__input[data-field="scent"]').value,
+        logic_link: card.querySelector('.mnemonic-field__input[data-field="logic"]').value,
         kingdom: currentDocument.sections[idx].mnemonics.kingdom
     };
     
@@ -962,6 +1044,7 @@ function toggleEditMode() {
     const titleDisplay = document.getElementById('doc-title-display');
     const titleInput = document.getElementById('doc-title-input');
     const wysiwygToolbar = document.getElementById('wysiwyg-toolbar');
+    const engineSidebar = document.getElementById('engine-sidebar');
     
     if (turnOn) {
         body.classList.add('editing-mode');
@@ -970,12 +1053,14 @@ function toggleEditMode() {
         if (titleDisplay) titleDisplay.classList.add('hidden');
         if (titleInput) titleInput.classList.remove('hidden');
         if (wysiwygToolbar) wysiwygToolbar.classList.remove('hidden');
+        if (engineSidebar) engineSidebar.classList.remove('hidden');
     } else {
         body.classList.remove('editing-mode');
         if (actionBar) actionBar.classList.add('hidden');
         if (btn) btn.innerHTML = '<span class="icon">✏️</span> Edit';
         if (titleDisplay) titleDisplay.classList.remove('hidden');
         if (wysiwygToolbar) wysiwygToolbar.classList.add('hidden');
+        if (engineSidebar) engineSidebar.classList.add('hidden');
         if (titleInput) {
             titleInput.classList.add('hidden');
             const newTitle = titleInput.value.trim();
