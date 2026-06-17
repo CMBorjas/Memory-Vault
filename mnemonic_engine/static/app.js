@@ -656,46 +656,16 @@ function renderDocument() {
 
             <div class="bs-list-item__body">
                 <div class="bs-list-item__content ${isEditing ? 'hidden' : ''}" id="section-content-view-${index}">${section.content}</div>
-                <div class="bs-list-item__mnemonics" style="display: ${isEditing ? 'block' : 'none'}">
-                    <div class="mnemonic-field">
-                        <label class="mnemonic-field__label" style="display: flex; justify-content: space-between; align-items: center;">
-                            Acronym Anchor
-                            <button class="btn btn-secondary btn-sm btn-generate-acronym" data-index="${index}" style="padding: 0.1rem 0.5rem; font-size: 0.8rem;" title="Create mnemonic from first letter of each word in the title">Create Mnemonic from Title</button>
-                        </label>
-                        <textarea class="mnemonic-field__input" data-field="acronym" data-index="${index}">${section.mnemonics?.acronym || ''}</textarea>
-                    </div>
-                    <div class="mnemonic-field">
-                        <label class="mnemonic-field__label">Visual Anchor</label>
-                        <textarea class="mnemonic-field__input" data-field="visual" data-index="${index}">${section.mnemonics?.visual || ''}</textarea>
-                    </div>
-                    <div class="mnemonic-field">
-                        <label class="mnemonic-field__label">Scent Profile</label>
-                        <textarea class="mnemonic-field__input" data-field="scent" data-index="${index}">${section.mnemonics?.scent || ''}</textarea>
-                    </div>
-                    <div class="mnemonic-field">
-                        <label class="mnemonic-field__label">Logic Link</label>
-                        <textarea class="mnemonic-field__input" data-field="logic" data-index="${index}">${section.mnemonics?.logic || ''}</textarea>
-                    </div>
-                    <div class="section-actions">
-                        <button class="btn btn-primary btn-save-section" data-index="${index}">Save Mnemonics</button>
-                        <button class="btn btn-link btn-regen-section" data-index="${index}">Regenerate</button>
-                    </div>
-                </div>
             </div>
         `;
 
         div.querySelector('.btn-save-source').onclick = () => saveSectionSource(index);
         div.querySelector('.btn-delete-section').onclick = () => deleteSection(index);
         div.querySelector('.btn-add-section').onclick = () => createSection(index);
-
-        // Bind Mnemonic Buttons
-        div.querySelector('.btn-save-section').onclick = () => saveMnemonics(index);
-        div.querySelector('.btn-regen-section').onclick = () => regenerateMnemonics(index);
-        div.querySelector('.btn-generate-acronym').onclick = () => generateAcronymFromTitle(index);
         
         // Sidebar update on focus/click
-        div.addEventListener('focusin', () => updateEngineSidebar(index));
-        div.addEventListener('click', () => updateEngineSidebar(index));
+        div.addEventListener('focusin', () => { updateEngineSidebar(index); loadMnemonicsToSidebar(index); });
+        div.addEventListener('click', () => { updateEngineSidebar(index); loadMnemonicsToSidebar(index); });
 
         sectionsList.appendChild(div);
     });
@@ -803,17 +773,22 @@ with the lingering trace of <span class="prompt-highlight-constraint">${scent2}<
     }
 }
 
-async function saveMnemonics(idx) {
-    if (!currentDocument) return;
+async function saveMnemonics() {
+    if (!currentDocument || activeSectionIndex < 0) return;
+    const idx = activeSectionIndex;
     
-    const card = document.querySelectorAll('.bs-list-item')[idx];
     const mnemonics = {
-        acronym: card.querySelector('.mnemonic-field__input[data-field="acronym"]').value,
-        visual_anchor: card.querySelector('.mnemonic-field__input[data-field="visual"]').value,
-        scent_anchor: card.querySelector('.mnemonic-field__input[data-field="scent"]').value,
-        logic_link: card.querySelector('.mnemonic-field__input[data-field="logic"]').value,
-        kingdom: currentDocument.sections[idx].mnemonics.kingdom
+        acronym: document.getElementById('sidebar-acronym').value,
+        visual_anchor: document.getElementById('sidebar-visual').value,
+        scent_anchor: document.getElementById('sidebar-scent').value,
+        logic_link: document.getElementById('sidebar-logic').value,
+        kingdom: currentDocument.sections[idx].mnemonics?.kingdom || 'Amphibians'
     };
+    
+    const btn = document.getElementById('btn-sidebar-save');
+    const ogText = btn.innerHTML;
+    btn.innerHTML = 'Saving...';
+    btn.disabled = true;
     
     try {
         const res = await fetch(`/api/documents/${currentDocument.id}/sections/${idx}/mnemonics`, {
@@ -826,14 +801,28 @@ async function saveMnemonics(idx) {
         currentDocument.sections[idx].mnemonics = mnemonics;
         currentDocument.sections[idx].user_edited = true;
         renderDocument(); // refresh to show dot
-        showToast('Saved successfully', 'success');
+        
+        const msg = document.getElementById('mnemonics-status-msg');
+        msg.style.display = 'block';
+        msg.textContent = 'Saved!';
+        setTimeout(() => msg.style.display = 'none', 3000);
     } catch (e) {
         showToast(e.message, 'error');
+    } finally {
+        btn.innerHTML = ogText;
+        btn.disabled = false;
     }
 }
 
-async function regenerateMnemonics(idx) {
-    if (!currentDocument) return;
+async function regenerateMnemonics() {
+    if (!currentDocument || activeSectionIndex < 0) return;
+    const idx = activeSectionIndex;
+    
+    const btn = document.getElementById('btn-sidebar-regen');
+    const ogText = btn.innerHTML;
+    btn.innerHTML = 'Regenerating...';
+    btn.disabled = true;
+    
     try {
         const res = await fetch(`/api/documents/${currentDocument.id}/regenerate/${idx}`, { method: 'POST' });
         if (!res.ok) throw new Error('Regeneration failed');
@@ -842,9 +831,13 @@ async function regenerateMnemonics(idx) {
         currentDocument.sections[idx].mnemonics = data.mnemonics;
         currentDocument.sections[idx].user_edited = false;
         renderDocument();
+        loadMnemonicsToSidebar(idx);
         showToast('Regenerated new mnemonics', 'success');
     } catch (e) {
         showToast(e.message, 'error');
+    } finally {
+        btn.innerHTML = ogText;
+        btn.disabled = false;
     }
 }
 
@@ -1013,16 +1006,13 @@ async function toggleFavourite(id) {
 }
 
 function toggleEditMode() {
-    const mnemonicsBlocks = document.querySelectorAll('.bs-list-item__mnemonics');
     const sourceEditBlocks = document.querySelectorAll('.bs-list-item__source-edit');
     const contentViewBlocks = document.querySelectorAll('.bs-list-item__content');
     const headerTitleBlocks = document.querySelectorAll('.bs-list-item__header > div');
     const btn = document.getElementById('btn-edit-toggle');
     
-    const isCurrentlyHidden = mnemonicsBlocks[0]?.style.display === 'none' || mnemonicsBlocks[0]?.style.display === '';
-    const turnOn = isCurrentlyHidden;
-
-    mnemonicsBlocks.forEach(block => block.style.display = turnOn ? 'block' : 'none');
+    // Check current state based on body class
+    const turnOn = !document.body.classList.contains('editing-mode');
     
     sourceEditBlocks.forEach(block => {
         if (turnOn) block.classList.remove('hidden');
@@ -1045,6 +1035,7 @@ function toggleEditMode() {
     const titleInput = document.getElementById('doc-title-input');
     const wysiwygToolbar = document.getElementById('wysiwyg-toolbar');
     const engineSidebar = document.getElementById('engine-sidebar');
+    const mnemonicsSidebar = document.getElementById('mnemonics-sidebar');
     
     if (turnOn) {
         body.classList.add('editing-mode');
@@ -1054,6 +1045,13 @@ function toggleEditMode() {
         if (titleInput) titleInput.classList.remove('hidden');
         if (wysiwygToolbar) wysiwygToolbar.classList.remove('hidden');
         if (engineSidebar) engineSidebar.classList.remove('hidden');
+        if (mnemonicsSidebar) mnemonicsSidebar.classList.remove('hidden');
+        
+        // Auto-select first section if available
+        if (currentDocument && currentDocument.sections && currentDocument.sections.length > 0) {
+            updateEngineSidebar(0);
+            loadMnemonicsToSidebar(0);
+        }
     } else {
         body.classList.remove('editing-mode');
         if (actionBar) actionBar.classList.add('hidden');
@@ -1061,6 +1059,7 @@ function toggleEditMode() {
         if (titleDisplay) titleDisplay.classList.remove('hidden');
         if (wysiwygToolbar) wysiwygToolbar.classList.add('hidden');
         if (engineSidebar) engineSidebar.classList.add('hidden');
+        if (mnemonicsSidebar) mnemonicsSidebar.classList.add('hidden');
         if (titleInput) {
             titleInput.classList.add('hidden');
             const newTitle = titleInput.value.trim();
@@ -1679,3 +1678,7 @@ async function executeSlicer() {
     }
 }
 
+// ═══ Sidebar Bindings ═══
+document.getElementById('btn-sidebar-save')?.addEventListener('click', saveMnemonics);
+document.getElementById('btn-sidebar-regen')?.addEventListener('click', regenerateMnemonics);
+document.getElementById('btn-sidebar-generate-acronym')?.addEventListener('click', generateAcronymFromTitle);

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css?v=8">
+    <link rel="stylesheet" href="/static/styles.css?v=9">
 </head>
 <body class="dark-mode">
 
@@ -297,14 +297,53 @@
                         </div>
                     </div>
                     
-                    <!-- Right Sidebar: Mnemonic Engine Constraints -->
-                    <aside class="doc-sidebar right-sidebar hidden" id="engine-sidebar">
-                        <div class="engine-window card">
-                            <div class="engine-header">
-                                <h3><span class="icon" style="color:var(--color-primary);">⚙️</span> Engine Constraints</h3>
+                    <!-- Mnemonics Editor & Engine Constraints Sidebar -->
+                    <aside class="doc-sidebar right-sidebar hidden" id="mnemonics-sidebar" style="width: clamp(320px, 45vw, 700px);">
+                        <div class="engine-window card" style="padding: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            <!-- Mnemonic Editor Content -->
+                            <div class="engine-window-col">
+                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0;">
+                                    <h3 style="color: var(--text-primary);"><span class="icon">✏️</span> Edit Mnemonics</h3>
+                                </div>
+                                
+                                <div class="mnemonic-field">
+                                    <label class="mnemonic-field__label" style="display: flex; justify-content: space-between; align-items: center;">
+                                        Acronym Anchor
+                                        <button class="btn btn-secondary btn-sm" id="btn-sidebar-generate-acronym" style="padding: 0.15rem 0.4rem; font-size: 0.75rem; border: 1px solid var(--border-color); background: var(--bg-hover);">Create from Title</button>
+                                    </label>
+                                    <textarea class="mnemonic-field__input" id="sidebar-acronym" style="min-height: 40px; font-size: 0.9rem;"></textarea>
+                                </div>
+                                
+                                <div class="mnemonic-field">
+                                    <label class="mnemonic-field__label">Visual Anchor</label>
+                                    <textarea class="mnemonic-field__input" id="sidebar-visual" style="min-height: 70px; font-size: 0.85rem;"></textarea>
+                                </div>
+                                
+                                <div class="mnemonic-field">
+                                    <label class="mnemonic-field__label">Scent Profile</label>
+                                    <textarea class="mnemonic-field__input" id="sidebar-scent" style="min-height: 50px; font-size: 0.85rem;"></textarea>
+                                </div>
+                                
+                                <div class="mnemonic-field">
+                                    <label class="mnemonic-field__label">Logic Link</label>
+                                    <textarea class="mnemonic-field__input" id="sidebar-logic" style="min-height: 60px; font-size: 0.85rem;"></textarea>
+                                </div>
+                                
+                                <div class="section-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
+                                    <button class="btn btn-link" id="btn-sidebar-regen" style="font-size: 0.85rem; margin-right: auto;">Regenerate</button>
+                                    <button class="btn btn-primary" id="btn-sidebar-save">Save Mnemonics</button>
+                                </div>
+                                <div id="mnemonics-status-msg" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem; text-align: right; display: none;">Saved!</div>
                             </div>
-                            <div class="engine-content" id="engine-prompt-display">
-                                <p class="text-muted" style="font-size: 0.85rem;">Select a section to view engine parameters and prompt generation logic.</p>
+
+                            <!-- Engine Constraints Content -->
+                            <div class="engine-window-col">
+                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0;">
+                                    <h3 style="color: var(--text-primary);"><span class="icon" style="color:var(--color-primary);">⚙️</span> Engine Constraints</h3>
+                                </div>
+                                <div class="engine-content" id="engine-prompt-display">
+                                    <p class="text-muted" style="font-size: 0.85rem;">Select a section to view engine parameters and prompt generation logic.</p>
+                                </div>
                             </div>
                         </div>
                     </aside>
@@ -362,6 +401,6 @@
     <!-- PDF processing libraries (pdf.js and pdf-lib) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="/static/app.js?v=8"></script>
+    <script src="/static/app.js?v=9"></script>
 </body>
 </html>
