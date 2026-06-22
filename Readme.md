@@ -1,7 +1,12 @@
 # Anti-Gravity Knowledge Engine (AGKE)
+
 > **Grotesque Sensory Mnemonics & Cognitive Anchors for Computer Science Studies**
 
 **Anti-Gravity** is a containerized, local-first knowledge ecosystem designed to bridge the gap between "Cold Data" (textbook pages) and "Living Knowledge" (sensory anchors). By applying cognitive dissonance—blending synthetic beauty with organic decay—AGKE encodes complex computer science abstractions into long-term human memory.
+
+---
+
+> 🤖 **ATTENTION AI AGENTS:** You MUST read [AI_RULES.md](./AI_RULES.md) before making any modifications to this repository. All agents are required to update the project Knowledge Graph upon completing milestones or before pushing structural changes.
 
 ---
 
@@ -16,10 +21,13 @@ This is the **full private README** for running AGKE on your local Arch Garuda L
 ## 🧬 Core Principles
 
 ### 1. Dissonance for Retention
+
 Standard documentation fails because it is sterile and uniform. AGKE succeeds by being **grotesque**. By linking dry computational structures to visceral scent profiles (e.g., ambrosia and ammonia) and biological kingdom themes, we prevent "memory bleeding" between similar technical topics.
 
 ### 2. Dual-State Views (The Sanitizer Protocol)
+
 The system maintains notes in two formats:
+
 1. **Locus View (Obsidian):** The primary study format containing the original text, key terms, and collapsed memory anchors. By utilizing Obsidian's native collapsible syntax (`[!abstract]-`), mnemonics remain hidden until manually toggled open.
 2. **Sanitized View (GitHub Pages):** A clean, production-ready output purged of grotesque visuals, presenting elegant summaries and interactive elements suitable for portfolios or public hosting.
 
@@ -40,7 +48,9 @@ graph TD
 ```
 
 ### 1. Client-Side Slicing Workspace
+
 To handle book-scale documents without server overloading, splitting is performed in the web GUI using `pdf.js` and `pdf-lib`:
+
 * **Auto-TOC Mapping:** Parses bookmarks to identify chapter divisions.
 * **Manual Ranges:** Permits page selection via text input (e.g., `1-10, 11-20`) or by clicking page thumbnails.
 * **Fixed Splits:** Divides files into uniform page-count chapters.
@@ -48,15 +58,16 @@ To handle book-scale documents without server overloading, splitting is performe
 > **User Choice:** Before ingestion, you can either split the PDF yourself and upload chapter-by-chapter, or use the built-in Slicer Workspace to do it interactively in the browser.
 
 ### 2. Mnemonic Generation Pipeline
+
 The core Python application in [mnemonic_engine/](./mnemonic_engine/) generates anchors using profiles in [book_config.yml](./mnemonic_engine/book_config.yml). Each epoch/subject has distinct properties, each property but subject is generated and user approved before mnemonic generation:
 
-| Subject | Biological Kingdom animal | Visual Aesthetic | Primary Scent | Secondary Scent | MC / Narrative Profile | plot |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Networking +** | Amphibians / Otters | Withering / Decaying | Ambrosia | Ammonia | *Newt* (Space Operetta) | Controlling planet for drug runs in space |
-| **Databases (Under Construction)** | Insects | Chitinous / Swarming | Ozone | Sulfur | *Draven* (Cyberpunk) | (tbd) |
-| **Cybersecurity (Under Construction)** | Fungi | Parasitic / Spores | Truffle | Damp Copper | *Calyra* (Survival Horror) | (tbd) |
-| **Algorithms (Under Construction)** | Cephalopods | Shifting / Ink-Cloud | Brine | Iodine | *Cosmic horror protagonist* | (tbd) |
-| **Operating Systems (Under Construction)** | Arachnids | Webbing / Lurking | Petrichor | Formaldehyde | *Gothic horror protagonist* | (tbd) |
+| Subject                                          | Biological Kingdom animal | Visual Aesthetic     | Primary Scent | Secondary Scent | MC / Narrative Profile        | plot                                      |
+| :----------------------------------------------- | :------------------------ | :------------------- | :------------ | :-------------- | :---------------------------- | :---------------------------------------- |
+| **Networking +**                           | Amphibians / Otters       | Withering / Decaying | Ambrosia      | Ammonia         | *Newt* (Space Operetta)     | Controlling planet for drug runs in space |
+| **Databases (Under Construction)**         | Insects                   | Chitinous / Swarming | Ozone         | Sulfur          | *Draven* (Cyberpunk)        | (tbd)                                     |
+| **Cybersecurity (Under Construction)**     | Fungi                     | Parasitic / Spores   | Truffle       | Damp Copper     | *Calyra* (Survival Horror)  | (tbd)                                     |
+| **Algorithms (Under Construction)**        | Cephalopods               | Shifting / Ink-Cloud | Brine         | Iodine          | *Cosmic horror protagonist* | (tbd)                                     |
+| **Operating Systems (Under Construction)** | Arachnids                 | Webbing / Lurking    | Petrichor     | Formaldehyde    | *Gothic horror protagonist* | (tbd)                                     |
 
 ---
 
@@ -106,6 +117,7 @@ created_at: 2026-06-11T15:42:00Z
 ## 🚀 Deployment & Installation (Local / Arch Garuda Linux)
 
 ### 1. Pre-requisites
+
 Ensure `docker` and `docker-compose` are installed and running on your system.
 
 ```bash
@@ -114,6 +126,7 @@ sudo systemctl enable --now docker
 ```
 
 ### 2. Desktop Launcher (One-Time Setup)
+
 AGKE ships with an automation script that builds and installs the KDE Plasma application launcher:
 
 ```bash
@@ -121,6 +134,7 @@ AGKE ships with an automation script that builds and installs the KDE Plasma app
 ```
 
 This script:
+
 1. Escapes spaces in the project path for `.desktop` spec compliance.
 2. Marks the launcher as trusted (via `gio`) for KDE Plasma.
 3. Registers the app in `~/.local/share/applications/` and copies a shortcut to `~/Desktop/`.
@@ -129,13 +143,16 @@ This script:
 > If the Desktop icon still shows as **untrusted**, right-click it and select **"Allow Launching"** in the KDE Plasma context menu.
 
 ### 3. How the Launch Works
+
 Clicking the icon runs [scripts/launch.sh](./scripts/launch.sh), which:
+
 1. Validates that the Docker service is active (starts it if needed).
 2. Runs the container stack via `docker compose up -d`.
 3. Polls the backend health check at `http://localhost:8000/api/health`.
 4. Automatically opens the client GUI in your default browser at `http://localhost:8000`.
 
 ### 4. Manual Startup
+
 To run the containers manually without the launcher:
 
 ```bash
@@ -147,9 +164,11 @@ docker compose up -d --build
 ## 📚 Ingesting a New Book
 
 ### Option A — Local Batch Ingest (Fastest — pre-split already done)
+
 Click **⚡ Load All Networking Chapters** in the Upload view. The engine reads the 25 pre-split Sybex chapter PDFs directly from disk and assigns rigid canonical names (`Chapter 01 — Introduction to Networks`, etc.). No manual upload required.
 
 ### Option B — Pre-split Before Upload
+
 Split your PDF into chapter-sized files yourself (e.g., using `pdftk`) before uploading:
 
 ```bash
@@ -159,7 +178,9 @@ pdftk source.pdf cat 31-55 output chapter_02.pdf
 ```
 
 ### Option C — Use the Built-in Interactive Slicer
+
 Upload the full PDF to the GUI and use the **Slicer Workspace** to:
+
 1. Inspect the auto-extracted Table of Contents (bookmarks).
 2. Preview page thumbnails and adjust chapter boundaries visually.
 3. Define manual page ranges (e.g., `1-30, 31-55`).
@@ -201,3 +222,32 @@ Memory Vault/
 └── Readme.md                # This file (private, local)
     Readme-Public.md         # Sanitized public/portfolio version
 ```
+
+# The overall experice we wish to facilitate with the mnemonic engine:
+
+
+1.Choose the Right Method
+
+* **Acronyms(If possible):** Combine the first letters of words to form a new, easy-to-pronounce word.
+  * *Example:* **HOMES** (Lake Huron, Ontario, Michigan, Erie, Superior). [[1](https://en.wikipedia.org/wiki/Mnemonic)]
+* **Acrostics:** Use the first letter of each item to create an entire sentence.
+  * *Example:* **P**lease **E**xcuse **M**y **D**ear **A**unt **S**ally (Order of operations: Parentheses, Exponents, Multiply, Divide, Add, Subtract). [[1](https://ctl.stanford.edu/memory-strategy-mnemonics), [2](https://en.wikipedia.org/wiki/Mnemonic)]
+  * The acrostics should be used to create an overall arching story for the user to follow using the section, chapter, title and user defined important features of the book
+* **Linking (Chaining):** Create a bizarre, interconnected story where each item cues you to remember the next. [[1](https://www.verywellhealth.com/memory-tip-1-keyword-mnemonics-98466)]
+* **Rhymes & Songs:** Put the information to a catchy, rhythmic beat or familiar nursery rhyme. [[1](https://en.wikipedia.org/wiki/Mnemonic), [2](https://www.learvo.com/Blog/creating-effective-mnemonic-phrases-for-memory)]
+
+2. Best Practices for Creation
+
+* **Keep it short:** The mnemonic shouldn't be harder to remember than the actual information.
+* **Use vivid imagery:** Imagine absurd or emotional scenarios (e.g., a giant purple dog) to anchor the memory.
+* **Make it personal:** Words and references that relate to your own life or interests stick best. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics), [2](https://www.learvo.com/Blog/creating-effective-mnemonic-phrases-for-memory)]
+
+3. Step-by-Step Example
+
+Say you need to memorize the order of the planets from the Sun: **M**ercury, **V**enus, **E**arth, **M**ars, **J**upiter, **S**aturn, **U**ranus, **N**eptune. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+
+1. **Extract letters:** M, V, E, M, J, S, U, N.
+2. **Assign words:** **M**y **V**ery **E**ducated **M**other **J**ust **S**erved **U**s **N**oodles.
+3. **Practice:** Repeat the phrase and the planets together until it sticks. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+
+r

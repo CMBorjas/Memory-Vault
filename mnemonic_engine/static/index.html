@@ -49,7 +49,9 @@
             <div class="edit-action-bar__status text-muted">
                 <span class="icon">✏️</span> Editing Mnemonics
             </div>
-            <div class="edit-action-bar__actions">
+            <div class="edit-action-bar__actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                <button class="btn btn-secondary btn-sm hidden" id="btn-restore-mnemonics" style="border: 1px solid var(--border-color); background: var(--bg-hover);">✏️ Show Editor</button>
+                <button class="btn btn-secondary btn-sm hidden" id="btn-restore-engine" style="border: 1px solid var(--border-color); background: var(--bg-hover);">⚙️ Show Engine</button>
                 <button class="btn btn-primary" id="btn-edit-close">Close Editor</button>
             </div>
         </div>
@@ -301,15 +303,16 @@
                     <aside class="doc-sidebar right-sidebar hidden" id="mnemonics-sidebar" style="width: clamp(320px, 45vw, 700px);">
                         <div class="engine-window card" style="padding: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
                             <!-- Mnemonic Editor Content -->
-                            <div class="engine-window-col">
-                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0;">
-                                    <h3 style="color: var(--text-primary);"><span class="icon">✏️</span> Edit Mnemonics</h3>
+                            <div class="engine-window-col" id="mnemonics-editor-col">
+                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="color: var(--text-primary); margin: 0;"><span class="icon">✏️</span> Edit Mnemonics</h3>
+                                    <button class="btn btn-link btn-sm" id="btn-minimize-mnemonics" title="Minimize Editor" style="padding: 0 0.5rem; font-size: 1.2rem; line-height: 1; color: var(--text-muted);">&times;</button>
                                 </div>
                                 
                                 <div class="mnemonic-field">
                                     <label class="mnemonic-field__label" style="display: flex; justify-content: space-between; align-items: center;">
                                         Acronym Anchor
-                                        <button class="btn btn-secondary btn-sm" id="btn-sidebar-generate-acronym" style="padding: 0.15rem 0.4rem; font-size: 0.75rem; border: 1px solid var(--border-color); background: var(--bg-hover);">Create from Title</button>
+                                        <button class="btn btn-primary btn-sm" id="btn-sidebar-generate-acronym" style="padding: 0.15rem 0.4rem; font-size: 0.75rem; border: none; font-weight: bold; background: #e09f3e; color: #fff;">Create from Title</button>
                                     </label>
                                     <textarea class="mnemonic-field__input" id="sidebar-acronym" style="min-height: 40px; font-size: 0.9rem;"></textarea>
                                 </div>
@@ -330,16 +333,17 @@
                                 </div>
                                 
                                 <div class="section-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
-                                    <button class="btn btn-link" id="btn-sidebar-regen" style="font-size: 0.85rem; margin-right: auto;">Regenerate</button>
+                                    <!-- Regenerate moved to Visual Anchor -->
                                     <button class="btn btn-primary" id="btn-sidebar-save">Save Mnemonics</button>
                                 </div>
                                 <div id="mnemonics-status-msg" class="text-muted" style="font-size: 0.8rem; margin-top: 0.5rem; text-align: right; display: none;">Saved!</div>
                             </div>
 
                             <!-- Engine Constraints Content -->
-                            <div class="engine-window-col">
-                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0;">
-                                    <h3 style="color: var(--text-primary);"><span class="icon" style="color:var(--color-primary);">⚙️</span> Engine Constraints</h3>
+                            <div class="engine-window-col" id="engine-constraints-col">
+                                <div class="engine-header" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="color: var(--text-primary); margin: 0;"><span class="icon" style="color:var(--color-primary);">⚙️</span> Engine Constraints</h3>
+                                    <button class="btn btn-link btn-sm" id="btn-minimize-engine" title="Minimize Engine Constraints" style="padding: 0 0.5rem; font-size: 1.2rem; line-height: 1; color: var(--text-muted);">&times;</button>
                                 </div>
                                 <div class="engine-content" id="engine-prompt-display">
                                     <p class="text-muted" style="font-size: 0.85rem;">Select a section to view engine parameters and prompt generation logic.</p>

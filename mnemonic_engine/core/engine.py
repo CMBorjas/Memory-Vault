@@ -138,11 +138,152 @@ class MnemonicEngine:
         return " ".join(acronym_parts)
 
     def _build_scent(self, term: str, profile: dict) -> str:
-        """Build a scent anchor description."""
-        primary = profile.get("scent_primary", "Ambrosia")
+        """Build a scent anchor using the book's profile."""
+        primary = profile.get("scent_primary", "Ozone")
         secondary = profile.get("scent_secondary", "Ammonia")
         return random.choice(SCENT_TEMPLATES).format(
             primary=primary, secondary=secondary, term=term,
             primary_desc=SCENT_DESCRIPTIONS.get(primary, "intense and unforgettable"),
             secondary_desc=SCENT_DESCRIPTIONS.get(secondary, "lingering and sharp"),
         )
+
+    def generate_chapter(self, title: str, book_name: str) -> dict:
+        """Generate chapter-level templates and coherent acrostics."""
+        profile = self.config.get("books", {}).get(book_name, {})
+        primary_scent = profile.get("scent_primary", "Orange")
+        
+        # Clean title (remove "Chapter 01 - " etc)
+        import re
+        cleaned_title = re.sub(r'^[\d\.]+\s*|^Chapter\s+\d+\s*[-—]*\s*', '', title, flags=re.IGNORECASE).strip()
+        if not cleaned_title:
+            cleaned_title = title
+            
+        words = [w for w in cleaned_title.split() if re.search(r'[a-zA-Z]', w)]
+        
+        # We need a robust dictionary to build a coherent sentence.
+        # Structure: Adjective -> Noun -> Verb -> Noun -> Adjective -> Noun ...
+        adjectives = {
+            'A': ['Acidic', 'Angry', 'Ancient', 'Awful'],
+            'B': ['Bizarre', 'Bloody', 'Broken', 'Brutal'],
+            'C': ['Corrupted', 'Creepy', 'Cold', 'Cursed'],
+            'D': ['Decaying', 'Dark', 'Deadly', 'Dripping'],
+            'E': ['Eerie', 'Evil', 'Endless', 'Electric'],
+            'F': ['Foul', 'Frozen', 'Feral', 'Flaming'],
+            'G': ['Grotesque', 'Grim', 'Ghostly', 'Giant'],
+            'H': ['Horrific', 'Hollow', 'Haunted', 'Heavy'],
+            'I': ['Infected', 'Icy', 'Insane', 'Iron'],
+            'J': ['Jolting', 'Jagged', 'Jumbo', 'Jittery'],
+            'K': ['Killer', 'Kinetic', 'Knotted', 'Keen'],
+            'L': ['Lethal', 'Liquid', 'Lost', 'Lurking'],
+            'M': ['Mutated', 'Macabre', 'Mad', 'Massive'],
+            'N': ['Noxious', 'Nasty', 'Necrotic', 'Numb'],
+            'O': ['Ominous', 'Oozing', 'Old', 'Odd'],
+            'P': ['Poisonous', 'Putrid', 'Pale', 'Parasitic'],
+            'Q': ['Quivering', 'Quiet', 'Quick', 'Quaint'],
+            'R': ['Rotten', 'Rabid', 'Red', 'Ruthless'],
+            'S': ['Skeletal', 'Savage', 'Sick', 'Silent'],
+            'T': ['Toxic', 'Twisted', 'Torn', 'Terrifying'],
+            'U': ['Undead', 'Ugly', 'Unseen', 'Unreal'],
+            'V': ['Venomous', 'Vicious', 'Vampiric', 'Vile'],
+            'W': ['Withered', 'Wicked', 'Weeping', 'Wild'],
+            'X': ['Xenophobic', 'X-ray', 'Xeric', 'Xanthic'],
+            'Y': ['Yellowing', 'Yowling', 'Yawning', 'Young'],
+            'Z': ['Zombie', 'Zealous', 'Zigzag', 'Zero']
+        }
+        
+        nouns = {
+            'A': ['Aliens', 'Animals', 'Ashes', 'Apples'],
+            'B': ['Beasts', 'Bones', 'Bugs', 'Bats'],
+            'C': ['Creatures', 'Claws', 'Corpses', 'Cats'],
+            'D': ['Demons', 'Dogs', 'Dragons', 'Daggers'],
+            'E': ['Eyes', 'Entities', 'Eels', 'Eggs'],
+            'F': ['Freaks', 'Fangs', 'Frogs', 'Flies'],
+            'G': ['Ghosts', 'Ghouls', 'Goblins', 'Gargoyles'],
+            'H': ['Hounds', 'Hands', 'Horns', 'Hearts'],
+            'I': ['Insects', 'Implants', 'Ice', 'Icons'],
+            'J': ['Jaws', 'Jesters', 'Jugs', 'Jellies'],
+            'K': ['Knives', 'Kings', 'Kites', 'Keys'],
+            'L': ['Leeches', 'Lizards', 'Limbs', 'Lamps'],
+            'M': ['Monsters', 'Mutants', 'Mouths', 'Mice'],
+            'N': ['Needles', 'Nests', 'Nails', 'Nets'],
+            'O': ['Orcs', 'Owls', 'Ogres', 'Oceans'],
+            'P': ['Parasites', 'Pigs', 'Poison', 'Pots'],
+            'Q': ['Queens', 'Quills', 'Quakes', 'Quasars'],
+            'R': ['Rats', 'Reptiles', 'Roots', 'Rocks'],
+            'S': ['Spiders', 'Skulls', 'Snakes', 'Souls'],
+            'T': ['Teeth', 'Trolls', 'Toads', 'Traps'],
+            'U': ['Undead', 'Urns', 'Umbrellas', 'UFOs'],
+            'V': ['Vampires', 'Vipers', 'Veins', 'Vats'],
+            'W': ['Wolves', 'Worms', 'Witches', 'Webs'],
+            'X': ['Xylophones', 'Xenomorphs', 'X-rays', 'Xerophytes'],
+            'Y': ['Yetis', 'Yarns', 'Yards', 'Yolks'],
+            'Z': ['Zombies', 'Zebras', 'Zones', 'Zeppelins']
+        }
+        
+        verbs = {
+            'A': ['Attack', 'Absorb', 'Annihilate', 'Arouse'],
+            'B': ['Bite', 'Burn', 'Break', 'Bury'],
+            'C': ['Crush', 'Consume', 'Choke', 'Cut'],
+            'D': ['Destroy', 'Devour', 'Drown', 'Drag'],
+            'E': ['Eat', 'Execute', 'Erase', 'Exile'],
+            'F': ['Flay', 'Freeze', 'Fight', 'Fear'],
+            'G': ['Grab', 'Gouge', 'Gnash', 'Gulp'],
+            'H': ['Hunt', 'Hurt', 'Haunt', 'Hack'],
+            'I': ['Infect', 'Ignite', 'Impale', 'Invade'],
+            'J': ['Jolt', 'Jerk', 'Jab', 'Jam'],
+            'K': ['Kill', 'Kick', 'Kidnap', 'Knock'],
+            'L': ['Lacerate', 'Lick', 'Lash', 'Lock'],
+            'M': ['Mangle', 'Maul', 'Melt', 'Mash'],
+            'N': ['Nibble', 'Nail', 'Nuke', 'Numb'],
+            'O': ['Obliterate', 'Oppress', 'Overtake', 'Own'],
+            'P': ['Poison', 'Puncture', 'Punch', 'Pound'],
+            'Q': ['Quash', 'Quell', 'Quiet', 'Quit'],
+            'R': ['Rip', 'Ravage', 'Ruin', 'Roast'],
+            'S': ['Slash', 'Smash', 'Strangle', 'Swallow'],
+            'T': ['Tear', 'Torture', 'Trap', 'Throw'],
+            'U': ['Unleash', 'Undo', 'Uproot', 'Unnerve'],
+            'V': ['Vaporize', 'Vex', 'Violate', 'Vanquish'],
+            'W': ['Whip', 'Wound', 'Wreck', 'Warp'],
+            'X': ['X-ray', 'Xerox', 'X-out', 'Xenograft'],
+            'Y': ['Yank', 'Yell', 'Yield', 'Yowl'],
+            'Z': ['Zap', 'Zip', 'Zigzag', 'Zero']
+        }
+
+        # Generate Visual Anchor Acrostic
+        visual_lines = []
+        for i, word in enumerate(words):
+            first_char = word[0].upper()
+            if not first_char.isalpha():
+                continue
+                
+            # Cycle through Adjective, Noun, Verb, Noun
+            pos = i % 4
+            if pos == 0:
+                vocab = adjectives
+            elif pos == 1:
+                vocab = nouns
+            elif pos == 2:
+                vocab = verbs
+            else:
+                vocab = nouns
+                
+            pool = vocab.get(first_char, [first_char + '...'])
+            acrostic_word = random.choice(pool)
+            visual_lines.append(f"{first_char}. {acrostic_word}")
+
+        visual_anchor = "\n".join(visual_lines)
+        
+        # Format the scent string
+        scent_anchor = f"{{Generated scent that would compliment {primary_scent} or contrast}}"
+        
+        # Format the logic link
+        logic_link = "{Linking Chaining: Create Bizarre, interconnected story where each item cues you to remember the next}"
+
+        return {
+            "acronym": title,
+            "visual_anchor": visual_anchor,
+            "scent_anchor": scent_anchor,
+            "logic_link": logic_link,
+            "kingdom": profile.get("kingdom", "Amphibians"),
+            "aesthetic": profile.get("aesthetic", ""),
+        }
