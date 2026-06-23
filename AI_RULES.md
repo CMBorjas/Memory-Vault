@@ -20,3 +20,6 @@
 - Summarize your architectural changes.
 
 **By strictly adhering to these rules, you ensure that the Anti-Gravity Mnemonic Engine remains easily comprehensible for any future AI assistants.**
+
+### 4. Verification in Chrome
+- **MANDATORY**: Before saying complete to the user for any UI or visual logic task, you MUST verify the changes made by interacting with the app in a Chrome browser using the `browser_subagent`. Do not rely solely on code inspection or terminal output.

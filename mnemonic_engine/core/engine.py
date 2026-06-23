@@ -90,7 +90,7 @@ class MnemonicEngine:
         content_preview = section.get("content", "")[:200]
 
         # Build the acronym mnemonic from the title
-        acronym = self._build_acronym(title, profile)
+        acronym = title
 
         # Pick a visual template for the kingdom
         templates = VISUAL_TEMPLATES.get(kingdom, VISUAL_TEMPLATES["Amphibians"])
@@ -119,23 +119,6 @@ class MnemonicEngine:
             "aesthetic": profile.get("aesthetic", ""),
         }
 
-    def _build_acronym(self, title: str, profile: dict) -> str:
-        """Build a grotesque acronym mnemonic from a section title."""
-        words = title.split()
-        keywords = profile.get("visual_keywords", [])
-        if not keywords:
-            return title
-
-        acronym_parts = []
-        for word in words[:5]:
-            first_letter = word[0].upper()
-            matching = [kw for kw in keywords if kw[0].upper() == first_letter]
-            if matching:
-                acronym_parts.append(random.choice(matching).capitalize())
-            else:
-                acronym_parts.append(word)
-
-        return " ".join(acronym_parts)
 
     def _build_scent(self, term: str, profile: dict) -> str:
         """Build a scent anchor using the book's profile."""

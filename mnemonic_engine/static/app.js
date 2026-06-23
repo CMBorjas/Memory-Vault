@@ -1005,10 +1005,14 @@ function loadMnemonicsToSidebar(idx) {
     if (!currentDocument || !document.body.classList.contains('editing-mode')) return;
     
     let mnemonics = {};
+    let sectionTitle = '';
+
     if (idx === -1) {
         mnemonics = currentDocument.mnemonics || {};
+        sectionTitle = currentDocument.chapter_title || currentDocument.title || currentDocument.filename || '';
     } else if (idx !== -1 && currentDocument.sections[idx]) {
         mnemonics = currentDocument.sections[idx].mnemonics || {};
+        sectionTitle = currentDocument.sections[idx].title || '';
     }
 
     const setVal = (id, val) => {
@@ -1021,7 +1025,20 @@ function loadMnemonicsToSidebar(idx) {
         }
     };
 
-    setVal('sidebar-acronym', mnemonics.acronym);
+    // Auto-derive acronym from section/chapter title:
+    // Strip any leading numeric section prefix (e.g. "1.2 "), then take the
+    // uppercased first letter of every alphabetic word.
+    // Falls back to the raw title if the title is empty.
+    const cleanedTitle = sectionTitle.replace(/^[\d\.]+\s*/, '');
+    const words = cleanedTitle.split(/[\s\-—]+/).filter(w => w.length > 0 && /[a-zA-Z]/.test(w));
+    const acronym = words
+        .map(w => w.match(/[a-zA-Z]/)?.[0]?.toUpperCase())
+        .filter(Boolean)
+        .join('');
+
+    // Acronym Anchor: always show the derived acronym letters (or raw title as fallback)
+    setVal('sidebar-acronym', acronym || sectionTitle);
+    // Visual Anchor, Scent Profile, Logic Link: load from saved mnemonic values
     setVal('sidebar-visual', mnemonics.visual_anchor);
     setVal('sidebar-scent', mnemonics.scent_anchor);
     setVal('sidebar-logic', mnemonics.logic_link);

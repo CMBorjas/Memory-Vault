@@ -63,7 +63,7 @@ The core Python application in [mnemonic_engine/](./mnemonic_engine/) generates 
 
 | Subject                                          | Biological Kingdom animal | Visual Aesthetic     | Primary Scent | Secondary Scent | MC / Narrative Profile        | plot                                      |
 | :----------------------------------------------- | :------------------------ | :------------------- | :------------ | :-------------- | :---------------------------- | :---------------------------------------- |
-| **Networking +**                           | Amphibians / Otters       | Withering / Decaying | Ambrosia      | Ammonia         | *Newt* (Space Operetta)     | Controlling planet for drug runs in space |
+| **Networking +**                           | Otters                    | Withering / Decaying | Ambrosia      | Ammonia         | *Newt* (Space Operetta)     | Controlling planet for drug runs in space |
 | **Databases (Under Construction)**         | Insects                   | Chitinous / Swarming | Ozone         | Sulfur          | *Draven* (Cyberpunk)        | (tbd)                                     |
 | **Cybersecurity (Under Construction)**     | Fungi                     | Parasitic / Spores   | Truffle       | Damp Copper     | *Calyra* (Survival Horror)  | (tbd)                                     |
 | **Algorithms (Under Construction)**        | Cephalopods               | Shifting / Ink-Cloud | Brine         | Iodine          | *Cosmic horror protagonist* | (tbd)                                     |
@@ -223,31 +223,243 @@ Memory Vault/
     Readme-Public.md         # Sanitized public/portfolio version
 ```
 
-# The overall experice we wish to facilitate with the mnemonic engine:
 
+# 🧠 The Overall Experience — Mnemonic Engine Design Philosophy
 
-1.Choose the Right Method
+This section defines the intended user experience and cognitive workflow AGKE facilitates.
+It is the canonical design reference for all mnemonic generation features.
 
-* **Acronyms(If possible):** Combine the first letters of words to form a new, easy-to-pronounce word.
-  * *Example:* **HOMES** (Lake Huron, Ontario, Michigan, Erie, Superior). [[1](https://en.wikipedia.org/wiki/Mnemonic)]
-* **Acrostics:** Use the first letter of each item to create an entire sentence.
-  * *Example:* **P**lease **E**xcuse **M**y **D**ear **A**unt **S**ally (Order of operations: Parentheses, Exponents, Multiply, Divide, Add, Subtract). [[1](https://ctl.stanford.edu/memory-strategy-mnemonics), [2](https://en.wikipedia.org/wiki/Mnemonic)]
-  * The acrostics should be used to create an overall arching story for the user to follow using the section, chapter, title and user defined important features of the book
-* **Linking (Chaining):** Create a bizarre, interconnected story where each item cues you to remember the next. [[1](https://www.verywellhealth.com/memory-tip-1-keyword-mnemonics-98466)]
-* **Rhymes & Songs:** Put the information to a catchy, rhythmic beat or familiar nursery rhyme. [[1](https://en.wikipedia.org/wiki/Mnemonic), [2](https://www.learvo.com/Blog/creating-effective-mnemonic-phrases-for-memory)]
+---
 
-2. Best Practices for Creation
+## Step 1 — Choose the Right Mnemonic Method
 
-* **Keep it short:** The mnemonic shouldn't be harder to remember than the actual information.
-* **Use vivid imagery:** Imagine absurd or emotional scenarios (e.g., a giant purple dog) to anchor the memory.
-* **Make it personal:** Words and references that relate to your own life or interests stick best. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics), [2](https://www.learvo.com/Blog/creating-effective-mnemonic-phrases-for-memory)]
+The engine selects the best technique based on the title structure and content density
+of each section. The methods, in order of preference:
 
-3. Step-by-Step Example
+### 🔤 Acronyms *(if the initials form a pronounceable word)*
 
-Say you need to memorize the order of the planets from the Sun: **M**ercury, **V**enus, **E**arth, **M**ars, **J**upiter, **S**aturn, **U**ranus, **N**eptune. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+Combine the first letters of words to form a new, easy-to-remember word.
 
-1. **Extract letters:** M, V, E, M, J, S, U, N.
-2. **Assign words:** **M**y **V**ery **E**ducated **M**other **J**ust **S**erved **U**s **N**oodles.
-3. **Practice:** Repeat the phrase and the planets together until it sticks. [[1](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+> *Example:* **HOMES** — Lake **H**uron, **O**ntario, **M**ichigan, **E**rie, **S**uperior
+> [[Wikipedia](https://en.wikipedia.org/wiki/Mnemonic)]
 
-r
+### 📜 Acrostics *(primary method for chapter / section titles)*
+
+Use the first letter of each key word in the title to construct a complete, memorable
+sentence or themed word set.
+
+> *Example:* **P**lease **E**xcuse **M**y **D**ear **A**unt **S**ally
+> → Parentheses, Exponents, Multiply, Divide, Add, Subtract
+> [[Stanford CTL](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+
+**AGKE's use:** Acrostics are the *spine* of the chapter-level story. The first letters
+of each word in a chapter or section title become the theme words. These themes are then
+woven into a single **arching hero's journey narrative** that covers the entire chapter
+or study unit. The title, the section headings, and user-defined key features of the
+book all feed into this construction.
+
+### 🔗 Linking / Chaining *(used for multi-chapter story arcs)*
+
+Create a bizarre, absurd, interconnected story where each beat cues the next item in
+the sequence. [[VeryWell Health](https://www.verywellhealth.com/memory-tip-1-keyword-mnemonics-98466)]
+
+**AGKE's use:** After acrostics are generated per-chapter, the theme word sets from
+multiple chapters are **chained into a single unified story** (see Step 4). Each chapter's
+acrostic themes become a distinct act of the narrative.
+
+### 🎵 Rhymes & Songs *(optional / user-initiated)*
+
+Put the information to a catchy, rhythmic beat or familiar nursery rhyme pattern.
+[[Wikipedia](https://en.wikipedia.org/wiki/Mnemonic),
+[Learvo](https://www.learvo.com/Blog/creating-effective-mnemonic-phrases-for-memory)]
+
+---
+
+## Step 2 — Best Practices for Creation
+
+* **Keep it short:** The mnemonic should not be harder to recall than the original information.
+* **Use vivid imagery:** Imagine absurd or emotionally charged scenarios to anchor the memory.
+  The more grotesque, the better it sticks.
+* **Make it personal:** Words and references tied to your own life or interests survive long-term.
+  [[Stanford CTL](https://ctl.stanford.edu/memory-strategy-mnemonics)]
+* **The profile shapes the fiction:** For textbooks, the imaginary content is constrained by the
+  **book's biological kingdom, scent profile, and MC profile** — this prevents memory bleed
+  between subjects and keeps each chapter's anchor unique.
+
+---
+
+## Step 3 — Per-Section Mnemonic Note (The Locus View)
+
+Each section within a chapter generates its own **Memory Anchor** in the Obsidian vault.
+The note is shaped by the book's kingdom, aesthetic, and scent profile:
+
+```markdown
+---
+tags: [networking, study, mnemonic]
+status: learning
+mnemonic_type: grotesque
+source_page: 3
+created_at: 2026-06-11T15:42:00Z
+---
+
+> [!info] **Book:** [[Beaver Dam Irrigation]]
+> **Chapter 1: Fluid Movement — Environmental Study on Rivers Ecology** | **Page:** 3
+
+# The Layered Approach
+
+---
+
+> [!abstract]- Memory Anchor: Translucent Beavers — Layered Approach
+> **Kingdom:** Castor
+> **Themes:** Morally grey, Alchemy
+>
+> **The Imagery:**
+> A bloated beaver sits atop the layered architecture of rivers, its eyes weeping and
+> changing tides. Each blink sends tidal waves through its withering tree system,
+> matted against its face.
+>
+> **The Scent Anchor:**
+> Close your eyes. The Ambrosia fills the room — suffocatingly sweet, like wilting
+> funeral flowers. Underneath it, the Ammonia stings — sharp, like a rotting fish
+> baking in the sun.
+>
+> **The Logic:**
+> The bloated beaver is your brain's trigger for **[Chapter 1 / Section Title: key
+> concept]** — just as its tears flow, so does fluid movement environmental study
+> on rivers ecology.
+```
+
+---
+
+## Step 4 — Chapter-Level Acrostic → Theme Words → Unified Story
+
+This is the **core cognitive pipeline** of AGKE. Each chapter title's initials become
+scaffolding for a themed word set, and those word sets chain into a single story arc.
+
+### 4.1 — Extract Theme Words from Chapter Titles
+
+| Chapter | Title | Initials | Acrostic Theme Words |
+|:--|:--|:--|:--|
+| Ch. 1 | Fluid Movement Environmental Study on Rivers Ecology | `[F,M,E,S,O,R,E]` | **F**ocus, **M**otivation, **E**nergy, **S**ynergy, **O**ptimism, **R**esilience, **E**xcellence |
+| Ch. 2 | Understanding the Basics of Field Work in a Beaver Dam | `[U,T,B,O,F,W,I,A,B,D]` | **U**nity, **T**rust, **B**ravery, **O**pportunity, **F**ocus, **W**isdom, **I**nnovation, **A**ction, **B**alance, **D**edication |
+| Ch. 3 | Losing Fluid Lucidity of the River Health | `[L,F,L,O,T]` | **L**eadership, **F**ocus, **L**earning, **O**penness, **T**enacity |
+
+### 4.2 — Construct the AI Story Prompt
+
+Once theme word sets are assembled, AGKE constructs the following prompt for story generation:
+
+```
+Create a short story using the following sequential theme sets:
+
+  Chapter 1: Focus, Motivation, Energy, Synergy, Optimism, Resilience, Excellence
+  Chapter 2: Unity, Trust, Bravery, Opportunity, Focus, Wisdom, Innovation, Action, Balance, Dedication
+  Chapter 3: Leadership, Focus, Learning, Openness, Tenacity
+
+Rules:
+- Hit each theme word in order. Go sequentially through chapters.
+- The story must be about a beaver learning about beaver dam irrigation.
+- Make each story beat absurd and visceral to maximize memorability.
+- Weave in the primary scent [Ambrosia] and secondary scent [Ammonia] to accent
+  or undercut each story beat.
+- The story must follow the Hero's Journey arc.
+- The protagonist must be morally grey — not a hero, not a villain.
+```
+
+### 4.3 — AI-Generated Story Output (Example)
+
+```
+Barnaby the Beaver lived in a lodge that smelled perpetually of sweet, cloying Ambrosia,
+a byproduct of the enchanted wood he chewed. He was an engineer of unparalleled, albeit
+neurotic, caliber.
+
+### The Call to Action
+
+Barnaby's creek was drying up, caused by a rival's upstream obstruction. His Focus was
+shattered by panic; his Energy plummeted. He lacked the Motivation to move until an
+ancient, one-eyed muskrat named Silas — a morally grey mentor with breath like stinging
+Ammonia — appeared. Silas promised to teach him "Hydraulic Alchemy," provided Barnaby
+accepted that "efficiency justifies the ends."
+
+### The Journey of Virtues
+
+Silas led him to the High Dam, where they practiced Unity with the river's flow and Trust
+in the unstable mud. When a flash flood hit, Barnaby showed Bravery by diving into the
+silt, smelling the sharp, biting Ammonia of stagnant runoff, which he used to cauterize a
+breach in the dam. He saw an Opportunity to divert the flow, using his Focus to calculate
+the angles, drawing on the Wisdom of the elders, and sparking an Innovation that turned
+the dam into an irrigation pump. He took immediate Action, maintaining a fragile Balance
+between the river's rage and his construction, driven by pure Dedication.
+
+### The Climax of Leadership
+
+To finish the irrigation system, Barnaby had to sabotage the downstream sanctuary of a
+rival colony to save his own. He paused, feeling the overwhelming, nauseatingly sweet
+scent of Ambrosia rising from his tools, clashing with the harsh Ammonia of his deceit.
+He realized true Leadership required Focus on the survival of his kin, continuous
+Learning from his mistakes, Openness to the harsh reality of his choices, and the
+Tenacity to live with the cost.
+
+### Resolution
+
+The water flowed. His colony thrived. The smell of Ambrosia lingered in the air, masking
+the bitter, stinging Ammonia of the ecosystem he had quietly dismantled to ensure his own
+excellence. He sat atop his dam, a master of a lonely, efficient empire, wondering if the
+synergy of his success was worth the silence of the creek below.
+```
+
+---
+
+## Step 5 — Anki Flashcard Generation
+
+The unified story and per-section notes are exported as Anki-compatible flashcards.
+Each card maps a chapter title to its mnemonic story beat, backed by actual source text.
+
+### Card Format (Default)
+
+```
+[Front]
+Chapter 1: Fluid Movement — Environmental Study on Rivers Ecology
+
+[Back]
+==== Mnemonic ====
+Silas led him to the High Dam, where they practiced Unity with the river's flow and Trust
+in the unstable mud. When a flash flood hit, Barnaby showed Bravery by diving into the
+silt, smelling the sharp, biting Ammonia of stagnant runoff, which he used to cauterize a
+breach in the dam. He saw an Opportunity to divert the flow, using his Focus to calculate
+the angles, drawing on the Wisdom of the elders, and sparking an Innovation that turned
+the dam into an irrigation pump. He took immediate Action, maintaining a fragile Balance
+between the river's rage and his construction, driven by pure Dedication.
+
+==== Actual Information ====
+[Source text extracted from the chapter]
+```
+
+---
+
+## 🗺️ Implementation Status
+
+| Feature | Status | Notes |
+|:--|:--|:--|
+| Acronym auto-extraction from section/chapter titles | ✅ Done | `app.js → loadMnemonicsToSidebar()` |
+| Per-section grotesque visual anchor generation | ✅ Done | `engine.py → generate()` |
+| Per-section scent anchor generation | ✅ Done | `engine.py → _build_scent()` |
+| Chapter-level acrostic word generation | ✅ Done | `engine.py → generate_chapter()` |
+| Acronym Anchor box auto-populated in UI editor | ✅ Done | `app.js → loadMnemonicsToSidebar()` |
+| `generate_chapter()` scent + logic placeholders | 🔧 Fix needed | `engine.py` lines 260 & 263 — replace with real calls |
+| `visual_keywords` field in `book_config.yml` | 🔧 Fix needed | Field missing from all profiles; logic link falls back to "the creature" |
+| Duplicate functions in `app.js` | 🔧 Fix needed | `setupUploadZone`, `requestNotificationPermission`, `pollProgress` each defined twice |
+| Multi-chapter theme word aggregation (`POST /api/story/generate`) | 🔄 Planned | New `api/routes/story.py` route needed |
+| LLM abstraction layer (`core/llm_client.py`) | 🔄 Planned | **Provider: Google Gemini API** (`gemini-1.5-flash`); `GEMINI_API_KEY` env var; `OllamaClient` stub for future local migration |
+| AI story prompt construction (hero's journey, scent-woven) | 🔄 Planned | Prompt template defined in Readme.md § 4.2 |
+| Story arc UI (chapter multi-select + display + save) | 🔄 Planned | New Story Arc tab/modal in document view |
+| Anki card export | 🔄 Planned | **Format: tab-separated `.txt`** — browser-preview modal before download; `GET /api/documents/{id}/export/anki` |
+| Unified story saved to Obsidian `_index.md` as `[!story]-` callout | 🔄 Planned | `services/exporter.py` extension |
+| Sanitized HTML export (GitHub Pages / portfolio) | 🔄 Planned | `services/html_exporter.py` — strips grotesque callouts |
+
+### 🔑 Architecture Decisions (Locked)
+
+| Decision | Choice | Rationale |
+|:--|:--|:--|
+| **LLM provider** | Google Gemini API → Ollama (later) | Gemini now for quality; Ollama when stable for offline/local operation |
+| **LLM abstraction** | `core/llm_client.py` base class | Provider swap = config change only, no rewrite |
+| **Anki export format** | Tab-separated `.txt` | No new deps, no Docker rebuild; user edits in browser `<textarea>` before download |
