@@ -37,13 +37,22 @@ The system maintains notes in two formats:
 
 ```mermaid
 graph TD
-    A["Raw PDF Ingestion"] --> B["Client-side PDF Slicer"]
-    B -->|Split Chapters| C["FastAPI Mnemonic Engine"]
-    C -->|Generate Anchors| D["Vault Exporter"]
+    classDef done    fill:#276749,stroke:#68d391,stroke-width:2px,color:#fff;
+    classDef planned fill:#1a202c,stroke:#718096,stroke-width:2px,color:#a0aec0,stroke-dasharray:5 5;
+    classDef llm     fill:#553c9a,stroke:#b794f4,stroke-width:2px,color:#fff;
 
-    subgraph "Vault Outputs"
-        D --> E["Obsidian Locus Notes (Collapsible Grotesque Callouts)"]
-        D --> F["Sanitized HTML (Static GitHub Pages Portfolio)"]
+    A["Raw PDF Ingestion"] --> B["Client-Side PDF Slicer\npdf.js + pdf-lib"]:::done
+    B -->|"Split chapters"| C["FastAPI Mnemonic Engine\ncore/engine.py"]:::done
+    C -->|"Per-section anchors"| ED["Mnemonics Editor UI\nAcronym · Visual · Scent · Logic"]:::done
+    C -->|"Chapter acrostics"| SA["Story Arc Generator\nPOST /api/story/generate"]:::planned
+    SA -->|"Hero's journey prompt"| LLM["LLM Client\nGemini → Ollama later"]:::llm
+    LLM -->|"Unified story"| SA
+    ED -->|"Export trigger"| D["Obsidian Exporter\nservices/exporter.py"]:::done
+
+    subgraph "Outputs"
+        D --> E["Obsidian Locus Notes\nvault/ — collapsible callouts"]:::done
+        SA -.->|"planned"| F["Anki Deck\n.txt tab-separated"]:::planned
+        D -.->|"planned"| G["Sanitized HTML\nGitHub Pages"]:::planned
     end
 ```
 

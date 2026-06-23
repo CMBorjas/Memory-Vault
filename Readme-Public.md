@@ -46,10 +46,13 @@ graph TD
 
 | Component | Description |
 | :--- | :--- |
-| **Interactive PDF Slicer** | Browser-based tool using `pdf.js` + `pdf-lib` to slice a full textbook into chapter-sized PDFs visually, without any server upload |
-| **Mnemonic Engine** | Python/FastAPI service that OCRs each chapter PDF and calls a configured LLM to generate narrative-consistent memory anchors |
-| **Vault Exporter** | Writes Obsidian-compatible Markdown files with collapsible `[!abstract]-` callouts for each anchor |
-| **Sanitizer** | Strips grotesque imagery and outputs clean HTML suitable for this public page |
+| **Interactive PDF Slicer** | Browser-based tool using `pdf.js` + `pdf-lib` to slice a full textbook into chapter-sized PDFs visually — no server upload needed until slicing is complete |
+| **Mnemonic Engine** | Python/FastAPI service that OCRs each chapter PDF and generates grotesque sensory anchors (visual, scent, logic) using per-subject biological kingdom profiles |
+| **Mnemonics Editor** | In-browser 4-field editor (Acronym · Visual Anchor · Scent Profile · Logic Link) — users refine AI-generated anchors per section and chapter |
+| **LLM Story Arc Generator** | Planned — chains chapter-level acrostic theme words into a unified hero's journey narrative using the Google Gemini API (local Ollama migration planned) |
+| **Vault Exporter** | Writes Obsidian-compatible Markdown files with collapsible `[!abstract]-` callouts for each anchor; `_index.md` per chapter |
+| **Anki Export** | Planned — tab-separated `.txt` flashcard deck (Front: chapter title; Back: story beat + source text); browser preview before download |
+| **Sanitizer** | Planned — strips grotesque imagery and outputs clean HTML suitable for the public portfolio page |
 
 ---
 
@@ -114,13 +117,23 @@ This is a fully local, containerized application. No data leaves your machine.
 
 ## Project Status
 
-This is an **active personal project** in ongoing development. The core pipeline (PDF ingestion → mnemonic generation → Obsidian export) is functional for the CompTIA Network+ study curriculum.
+This is an **active personal project** in ongoing development. Core pipeline (PDF ingestion → per-section mnemonic generation → Obsidian export) is fully functional for CompTIA Network+ study.
 
-**Planned / In Progress:**
-- [ ] Interactive client-side PDF slicer with visual page thumbnails
-- [ ] GitHub Pages deployment of sanitized note summaries (this page)
-- [ ] Additional subject profiles (Security+, Linux+)
-- [ ] Dynamic web hosting option for a shared demo
+**Complete:**
+- [x] Interactive client-side PDF slicer with visual page thumbnails and TOC bookmark extraction
+- [x] Per-section grotesque mnemonic generation (visual anchor, scent anchor, logic link)
+- [x] Chapter-level acrostic theme-word generation from title initials
+- [x] In-browser Mnemonics Editor with 4-field sidebar and auto-derived acronym
+- [x] Obsidian vault export with collapsible `[!abstract]-` callouts and section navigation
+- [x] Revision history, favourites, document copy/move, section split/merge
+- [x] KDE Plasma desktop launcher integration
+
+**In Progress / Planned:**
+- [ ] Multi-chapter story arc generator via Google Gemini API (hero's journey, scent-woven narrative)
+- [ ] LLM abstraction layer for future local Ollama migration
+- [ ] Anki flashcard export (tab-separated `.txt`, browser preview before download)
+- [ ] GitHub Pages deployment of sanitized note summaries
+- [ ] Additional subject profiles (Security+, Linux+, RHCSA)
 
 ---
 
