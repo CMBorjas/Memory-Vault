@@ -5,6 +5,8 @@
 let currentDocument = null;
 let bookProfiles = {};
 let selectedBook = 'Networking';
+let activeSectionIndex = 0;  // -1 = chapter level, 0+ = section index
+
 
 // Notification state — tracks when a job finishes so we can alert the user
 let _wasProcessing = false;
@@ -666,11 +668,96 @@ async function loadDocument(id) {
     }
 }
 
+// ─── Mnemonic State Helper ───
+// Returns true if this mnemonics object has any non-empty content.
+// Used to drive the ✅/➕ state on chapter + section + buttons.
+function hasMnemonics(mnObj) {
+    if (!mnObj) return false;
+    return !!(mnObj.visual_anchor || mnObj.scent_anchor || mnObj.logic_link);
+}
+
+// ─── Acrostic Word Banks (mirrors engine.py ACROSTIC_* constants) ───
+// Used to auto-derive Visual Anchor from any title — chapter OR section.
+const ACROSTIC_ADJ = {
+    A:['Acidic','Angry','Ancient','Awful'], B:['Bizarre','Bloody','Broken','Brutal'],
+    C:['Corrupted','Creepy','Cold','Cursed'], D:['Decaying','Dark','Deadly','Dripping'],
+    E:['Eerie','Evil','Endless','Electric'], F:['Foul','Frozen','Feral','Flaming'],
+    G:['Grotesque','Grim','Ghostly','Giant'], H:['Horrific','Hollow','Haunted','Heavy'],
+    I:['Infected','Icy','Insane','Iron'], J:['Jolting','Jagged','Jumbo','Jittery'],
+    K:['Killer','Kinetic','Knotted','Keen'], L:['Lethal','Liquid','Lost','Lurking'],
+    M:['Mutated','Macabre','Mad','Massive'], N:['Noxious','Nasty','Necrotic','Numb'],
+    O:['Ominous','Oozing','Old','Odd'], P:['Poisonous','Putrid','Pale','Parasitic'],
+    Q:['Quivering','Quiet','Quick','Quaint'], R:['Rotten','Rabid','Red','Ruthless'],
+    S:['Skeletal','Savage','Sick','Silent'], T:['Toxic','Twisted','Torn','Terrifying'],
+    U:['Undead','Ugly','Unseen','Unreal'], V:['Venomous','Vicious','Vampiric','Vile'],
+    W:['Withered','Wicked','Weeping','Wild'], X:['Xenophobic','X-ray','Xeric','Xanthic'],
+    Y:['Yellowing','Yowling','Yawning','Young'], Z:['Zombie','Zealous','Zigzag','Zero']
+};
+const ACROSTIC_NOUN = {
+    A:['Aliens','Animals','Ashes','Apples'], B:['Beasts','Bones','Bugs','Bats'],
+    C:['Creatures','Claws','Corpses','Cats'], D:['Demons','Dogs','Dragons','Daggers'],
+    E:['Eyes','Entities','Eels','Eggs'], F:['Freaks','Fangs','Frogs','Flies'],
+    G:['Ghosts','Ghouls','Goblins','Gargoyles'], H:['Hounds','Hands','Horns','Hearts'],
+    I:['Insects','Implants','Ice','Icons'], J:['Jaws','Jesters','Jugs','Jellies'],
+    K:['Knives','Kings','Kites','Keys'], L:['Leeches','Lizards','Limbs','Lamps'],
+    M:['Monsters','Mutants','Mouths','Mice'], N:['Needles','Nests','Nails','Nets'],
+    O:['Orcs','Owls','Ogres','Oceans'], P:['Parasites','Pigs','Poison','Pots'],
+    Q:['Queens','Quills','Quakes','Quasars'], R:['Rats','Reptiles','Roots','Rocks'],
+    S:['Spiders','Skulls','Snakes','Souls'], T:['Teeth','Trolls','Toads','Traps'],
+    U:['Undead','Urns','Umbrellas','UFOs'], V:['Vampires','Vipers','Veins','Vats'],
+    W:['Wolves','Worms','Witches','Webs'], X:['Xylophones','Xenomorphs','X-rays','Xerophytes'],
+    Y:['Yetis','Yarns','Yards','Yolks'], Z:['Zombies','Zebras','Zones','Zeppelins']
+};
+const ACROSTIC_VERB = {
+    A:['Attack','Absorb','Annihilate','Arouse'], B:['Bite','Burn','Break','Bury'],
+    C:['Crush','Consume','Choke','Cut'], D:['Destroy','Devour','Drown','Drag'],
+    E:['Eat','Execute','Erase','Exile'], F:['Flay','Freeze','Fight','Fear'],
+    G:['Grab','Gouge','Gnash','Gulp'], H:['Hunt','Hurt','Haunt','Hack'],
+    I:['Infect','Ignite','Impale','Invade'], J:['Jolt','Jerk','Jab','Jam'],
+    K:['Kill','Kick','Kidnap','Knock'], L:['Lacerate','Lick','Lash','Lock'],
+    M:['Mangle','Maul','Melt','Mash'], N:['Nibble','Nail','Nuke','Numb'],
+    O:['Obliterate','Oppress','Overtake','Own'], P:['Poison','Puncture','Punch','Pound'],
+    Q:['Quash','Quell','Quiet','Quit'], R:['Rip','Ravage','Ruin','Roast'],
+    S:['Slash','Smash','Strangle','Swallow'], T:['Tear','Torture','Trap','Throw'],
+    U:['Unleash','Undo','Uproot','Unnerve'], V:['Vaporize','Vex','Violate','Vanquish'],
+    W:['Whip','Wound','Wreck','Warp'], X:['X-ray','Xerox','X-out','Xenograft'],
+    Y:['Yank','Yell','Yield','Yowl'], Z:['Zap','Zip','Zigzag','Zero']
+};
+
+/**
+ * Derives the Visual Anchor acrostic from any title string.
+ * Strips numeric prefixes (e.g. "1.2 ") and "Chapter NN — " patterns,
+ * then maps the first letter of each word to a grotesque word cycling:
+ *   Adjective → Noun → Verb → Noun → Adjective → ...
+ * Mirrors the Python engine._build_acrostic() method exactly.
+ */
+function buildAcrostic(title) {
+    const cleaned = (title || '')
+        .replace(/^[\d\.]+\s*/, '')
+        .replace(/^Chapter\s+\d+\s*[-—]*\s*/i, '')
+        .trim();
+    const source = cleaned || title || '';
+    const words = source.split(/[\s\-—]+/).filter(w => w.length > 0 && /[a-zA-Z]/.test(w));
+    const lines = [];
+    words.forEach((word, i) => {
+        const ch = word.match(/[a-zA-Z]/)?.[0]?.toUpperCase();
+        if (!ch) return;
+        const pos = i % 4;
+        const vocab = pos === 0 ? ACROSTIC_ADJ
+                    : pos === 2 ? ACROSTIC_VERB
+                    : ACROSTIC_NOUN;
+        const pool = vocab[ch] || [ch + '...'];
+        lines.push(`${ch}. ${pool[Math.floor(Math.random() * pool.length)]}`);
+    });
+    return lines.join('\n');
+}
+
 function renderDocument() {
     if (!currentDocument) return;
     
     const doc = currentDocument;
     const profile = bookProfiles[doc.book] || {};
+    const chapHasMnemonics = hasMnemonics(doc.mnemonics);
     // Use canonical chapter title when available, fall back to filename
     const displayTitle = doc.chapter_number
         ? `Chapter ${String(doc.chapter_number).padStart(2,'0')} \u2014 ${doc.chapter_title}`
@@ -681,7 +768,7 @@ function renderDocument() {
         <h1 id="doc-title-display" title="Click to load chapter mnemonics" style="cursor: pointer;">${displayTitle}</h1>
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%;">
             <input type="text" id="doc-title-input" class="hidden" value="${displayTitle}" style="flex-grow: 1; font-size: 2.5rem; border-radius: 4px; padding: 0.5rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 400; color: #ffffff; background: var(--bg-hover); border: 1px solid var(--border-color);">
-            <button class="btn btn-link hidden" id="btn-open-editor-title" title="Open Mnemonics Editor" style="font-size: 1.5rem; color: var(--color-primary); background: transparent; border: 1px solid var(--color-primary); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;">➕</button>
+            <button class="btn btn-link hidden" id="btn-open-editor-title" title="${chapHasMnemonics ? 'Mnemonics saved ✅' : 'Open Mnemonics Editor'}" style="font-size: 1.5rem; color: var(--color-primary); background: transparent; border: 1px solid ${chapHasMnemonics ? '#4ecca3' : 'var(--color-primary)'}; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;">${chapHasMnemonics ? '✅' : '➕'}</button>
         </div>
         
         <div id="wysiwyg-toolbar" class="hidden formatting-toolbar">
@@ -820,6 +907,7 @@ function renderDocument() {
         const isEditing = document.body.classList.contains('editing-mode');
         // Escape quotes to prevent HTML injection in inputs
         const esc = (str) => (str || '').replace(/"/g, '&quot;');
+        const secHasMnemonics = hasMnemonics(section.mnemonics);
 
         div.innerHTML = `
             <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -835,7 +923,7 @@ function renderDocument() {
                         <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Section Title</label>
                         <input type="text" class="form-control" id="edit-section-title-${index}" value="${esc(section.title)}" style="width: 100%;">
                     </div>
-                    <button class="btn btn-link btn-open-editor-section" data-index="${index}" title="Open Mnemonics Editor" style="font-size: 1.2rem; color: var(--color-primary); background: transparent; border: 1px solid var(--color-primary); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; margin-bottom: 2px;">➕</button>
+                    <button class="btn btn-link btn-open-editor-section" data-index="${index}" title="${secHasMnemonics ? 'Mnemonics saved ✅' : 'Open Mnemonics Editor'}" style="font-size: 1.2rem; color: var(--color-primary); background: transparent; border: 1px solid ${secHasMnemonics ? '#4ecca3' : 'var(--color-primary)'}; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; margin-bottom: 2px;">${secHasMnemonics ? '✅' : '➕'}</button>
                 </div>
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Source Content</label>
@@ -1003,6 +1091,7 @@ with the lingering trace of <span class="prompt-highlight-constraint">${scent2}<
 
 function loadMnemonicsToSidebar(idx) {
     if (!currentDocument || !document.body.classList.contains('editing-mode')) return;
+    activeSectionIndex = idx;  // defensive: keep state in sync even if updateEngineSidebar not called first
     
     let mnemonics = {};
     let sectionTitle = '';
@@ -1036,12 +1125,16 @@ function loadMnemonicsToSidebar(idx) {
         .filter(Boolean)
         .join('');
 
-    // Acronym Anchor: always show the derived acronym letters (or raw title as fallback)
+    // Acronym Anchor: always derive from title (never loads stored value)
     setVal('sidebar-acronym', acronym || sectionTitle);
-    // Visual Anchor, Scent Profile, Logic Link: load from saved mnemonic values
-    setVal('sidebar-visual', mnemonics.visual_anchor);
+    // Visual Anchor: always derive acrostic from title (same rule as Acronym — never loads
+    // stored paragraph-format values; user may edit and save a custom version which is
+    // preserved in storage/exports but the sidebar always shows a fresh acrostic on open)
+    setVal('sidebar-visual', buildAcrostic(sectionTitle));
+    // Scent Profile, Logic Link: load from saved mnemonic values
     setVal('sidebar-scent', mnemonics.scent_anchor);
     setVal('sidebar-logic', mnemonics.logic_link);
+
 }
 
 async function saveMnemonics() {
