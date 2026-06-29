@@ -14,7 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR $APP_HOME
 
 # Install dependencies first (layer caching)
-RUN apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git tesseract-ocr tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

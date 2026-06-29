@@ -6,11 +6,13 @@ services:
     container_name: anti-gravity-engine
     network_mode: "host"
     volumes:
-      - ./vault:/vault            # Obsidian vault mount (exported notes)
+      - ./vault:/app/vault        # Obsidian vault mount (exported notes)
       - ./data:/app/data          # Processed PDFs, user edits, generated mnemonics
       - ./mnemonic_engine/static:/app/static # Live reload for frontend
       - ./mnemonic_engine/book_config.yml:/app/book_config.yml # Live reload for config
+      - ./.git:/app/.git          # Git repo mount for revision history
     environment:
-      - VAULT_PATH=/vault
+      - VAULT_PATH=/app/vault
       - DATA_PATH=/app/data
     restart: unless-stopped
+

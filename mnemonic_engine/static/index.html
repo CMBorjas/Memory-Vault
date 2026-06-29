@@ -24,9 +24,19 @@
                 <input type="text" class="bs-search-input" placeholder="Search mnemonics..." disabled title="Search coming soon">
             </div>
             
-            <div class="bs-header__user" id="engine-status">
-                <span class="status-dot"></span>
-                <span class="status-text">Connecting...</span>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <div class="header-preferences">
+                    <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">🌙</button>
+                    <select class="language-select" id="language-select" title="Change Language">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+                <div class="bs-header__user" id="engine-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
             </div>
         </div>
     </header>
@@ -294,6 +304,13 @@
                             <!-- Populated by JS -->
                         </div>
 
+                        <div style="margin: 1rem 0; display: flex; gap: 1rem;">
+                            <button class="btn btn-secondary btn-sm" id="btn-toggle-diagram">🎨 Draw Memory Palace</button>
+                        </div>
+                        <div class="diagram-container hidden" id="diagram-editor-container">
+                            <iframe class="diagram-iframe" id="diagram-iframe" src="https://embed.diagrams.net/?embed=1&ui=dark&spin=1&proto=json"></iframe>
+                        </div>
+
                         <div class="sections-list" id="sections-list">
                             <!-- Populated by JS -->
                         </div>
@@ -379,6 +396,16 @@
             </div>
             <div class="modal__body" id="revisions-body">
                 <!-- Populated by JS -->
+            </div>
+            <div class="diff-container hidden" style="margin: 1.5rem; max-height: 400px; overflow-y: auto;" id="revisions-diff-container">
+                <div class="diff-pane">
+                    <h4>Old Revision</h4>
+                    <pre class="diff-removed" id="diff-old-content" style="padding: 0.5rem; white-space: pre-wrap; font-family: monospace;"></pre>
+                </div>
+                <div class="diff-pane">
+                    <h4>Current Version</h4>
+                    <pre class="diff-added" id="diff-new-content" style="padding: 0.5rem; white-space: pre-wrap; font-family: monospace;"></pre>
+                </div>
             </div>
         </div>
     </div>

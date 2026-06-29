@@ -71,12 +71,15 @@ class ObsidianExporter:
 
     def _render_section(self, section: dict, document: dict, index: int) -> str:
         """Render a single section as an Obsidian markdown note."""
+        from core.jinja_renderer import render_content
+
         title = _normalize_title(section.get("title", "Untitled"))
-        content = section.get("content", "")
+        content = render_content(section.get("content", ""))
         mnemonics = section.get("mnemonics", {})
         page = section.get("page", "?")
         key_terms = section.get("key_terms", [])
         book = document.get("book", "Uncategorized")
+
         doc_filename_stem = Path(document.get("filename", "unknown")).stem
         
         sections = document.get("sections", [])
@@ -134,10 +137,11 @@ class ObsidianExporter:
 
         # Memory Anchor callout
         acronym = mnemonics.get("acronym", title)
-        visual = mnemonics.get("visual_anchor", "")
-        scent = mnemonics.get("scent_anchor", "")
-        logic = mnemonics.get("logic_link", "")
+        visual = render_content(mnemonics.get("visual_anchor", ""))
+        scent = render_content(mnemonics.get("scent_anchor", ""))
+        logic = render_content(mnemonics.get("logic_link", ""))
         kingdom = mnemonics.get("kingdom", "")
+
 
         lines.extend([
             f"> [!abstract]- 🧠 Memory Anchor: {acronym}",

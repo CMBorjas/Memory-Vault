@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from core.config import STATIC_DIR
-from api.routes import gui, system, books, ingest, documents
+from api.routes import gui, system, books, ingest, documents, auth, shelves, revisions, blocks
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)-7s | %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger("anti-gravity")
@@ -29,3 +29,11 @@ app.include_router(system.router)
 app.include_router(books.router)
 app.include_router(ingest.router)
 app.include_router(documents.router)
+app.include_router(auth.router)
+app.include_router(shelves.router)
+app.include_router(revisions.router)
+app.include_router(blocks.router)
+
+
+
+

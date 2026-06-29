@@ -31,6 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadLibrary();
 
     startGlobalProgressPolling();
+    await initPreferences();
+    setupEnterpriseFeatures();
 });
 
 // ═══ Desktop / Browser Notifications ═══
@@ -456,8 +458,12 @@ async function ingestLocalChapters() {
 // ═══ Library & Document ═══
 async function loadLibrary() {
     try {
-        const res = await fetch('/api/textbooks');
-        const data = await res.json();
+        const [shelvesRes, textbooksRes] = await Promise.all([
+            fetch('/api/shelves'),
+            fetch('/api/textbooks')
+        ]);
+        const shelves = await shelvesRes.json();
+        const data = await textbooksRes.json();
         
         // Calculate total docs
         let docCount = data.loose.length;
@@ -476,81 +482,148 @@ async function loadLibrary() {
         
         empty.classList.add('hidden');
         
-        // 1. Render Grouped Textbooks
-        data.textbooks.forEach(tb => {
-            const profile = bookProfiles[tb.book] || {};
-            const color = profile.color_palette?.[0] || 'var(--color-primary)';
+        const shelvedTextbooks = new Set();
+        
+        // 1. Render Grouped Textbooks by Shelf
+        shelves.forEach(shelf => {
+            const shelfTextbooks = data.textbooks.filter(tb => shelf.books.includes(tb.book));
+            if (shelfTextbooks.length === 0) return;
             
-            const card = document.createElement('div');
-            card.className = 'doc-card textbook-card';
-            card.style.borderLeft = `4px solid ${color}`;
+            const shelfDiv = document.createElement('div');
+            shelfDiv.className = 'shelf-section';
             
-            card.innerHTML = `
-                <div class="doc-card__meta">
-                    <span class="doc-card__chapter-badge" style="background: ${color}">${tb.chapter_count} Chapters</span>
-                    <span>${tb.total_sections} sections</span>
+            const descHtml = shelf.description ? `<p class="shelf-desc">${shelf.description}</p>` : '';
+            shelfDiv.innerHTML = `
+                <div class="shelf-header">
+                    <div>
+                        <div class="shelf-title">📁 ${shelf.name}</div>
+                        ${descHtml}
+                    </div>
                 </div>
-                <div class="doc-card__title" title="${tb.textbook}">${tb.textbook}</div>
-                <div class="doc-card__tag" style="color: ${color}">${tb.book.replace('_', ' ')}</div>
-                
-                <div class="textbook-chapters hidden">
-                    <!-- Populated via JS below -->
-                </div>
+                <div class="shelf-books-grid" id="shelf-grid-${shelf.id}"></div>
             `;
+            grid.appendChild(shelfDiv);
             
-            // Setup expand/collapse logic for chapters
-            const chList = card.querySelector('.textbook-chapters');
-            card.addEventListener('click', (e) => {
-                // If they clicked a chapter directly, don't toggle
-                if (e.target.closest('.textbook-chapter-item')) return;
-                chList.classList.toggle('hidden');
+            const shelfGrid = shelfDiv.querySelector(`#shelf-grid-${shelf.id}`);
+            shelfTextbooks.forEach(tb => {
+                shelvedTextbooks.add(tb.textbook_id);
+                const card = createTextbookCard(tb);
+                shelfGrid.appendChild(card);
             });
-
-            // Populate chapters inside the card
-            tb.chapters.forEach(ch => {
-                const chItem = document.createElement('div');
-                chItem.className = 'textbook-chapter-item';
-                chItem.innerHTML = `
-                    <span class="ch-num">Ch. ${String(ch.chapter_number).padStart(2, '0')}</span>
-                    <span class="ch-title" title="${ch.chapter_title}">${ch.chapter_title}</span>
-                    <span class="ch-sections">${ch.section_count} sec</span>
-                `;
-                chItem.addEventListener('click', (e) => {
-                    e.stopPropagation(); // prevent card toggle
-                    loadDocument(ch.id);
-                });
-                chList.appendChild(chItem);
-            });
-            
-            grid.appendChild(card);
         });
-
-        // 2. Render Loose Documents
-        data.loose.forEach(doc => {
-            const profile = bookProfiles[doc.book] || {};
-            const color = profile.color_palette?.[0] || 'var(--border)';
-            
-            const date = new Date(doc.uploaded_at).toLocaleDateString();
-            const card = document.createElement('div');
-            card.className = 'doc-card';
-            card.style.borderLeft = `4px solid ${color}`;
-            
-            card.innerHTML = `
-                <div class="doc-card__meta">
-                    ${doc.chapter_number ? `<span class="doc-card__chapter-badge">Ch. ${String(doc.chapter_number).padStart(2,'0')}</span>` : `<span>${date}</span>`}
-                    <span>${doc.section_count} sections</span>
+        
+        // 2. Render Unshelved Textbooks
+        const unshelvedTextbooks = data.textbooks.filter(tb => !shelvedTextbooks.has(tb.textbook_id));
+        if (unshelvedTextbooks.length > 0) {
+            const unshelvedDiv = document.createElement('div');
+            unshelvedDiv.className = 'shelf-section';
+            unshelvedDiv.innerHTML = `
+                <div class="shelf-header">
+                    <div>
+                        <div class="shelf-title">📚 Unshelved Books</div>
+                    </div>
                 </div>
-                <div class="doc-card__title" title="${doc.chapter_title || doc.filename}">${doc.chapter_title || doc.filename}</div>
-                <div class="doc-card__tag" style="color: ${color}">${doc.book.replace('_', ' ')}</div>
+                <div class="shelf-books-grid" id="unshelved-books-grid"></div>
             `;
+            grid.appendChild(unshelvedDiv);
             
-            card.addEventListener('click', () => loadDocument(doc.id));
-            grid.appendChild(card);
-        });
+            const unshelvedGrid = unshelvedDiv.querySelector('#unshelved-books-grid');
+            unshelvedTextbooks.forEach(tb => {
+                const card = createTextbookCard(tb);
+                unshelvedGrid.appendChild(card);
+            });
+        }
+
+        // 3. Render Loose Documents
+        if (data.loose.length > 0) {
+            const looseDiv = document.createElement('div');
+            looseDiv.className = 'shelf-section';
+            looseDiv.innerHTML = `
+                <div class="shelf-header">
+                    <div>
+                        <div class="shelf-title">📄 Loose Documents</div>
+                    </div>
+                </div>
+                <div class="shelf-books-grid" id="loose-docs-grid"></div>
+            `;
+            grid.appendChild(looseDiv);
+            
+            const looseGrid = looseDiv.querySelector('#loose-docs-grid');
+            data.loose.forEach(doc => {
+                const card = createLooseDocCard(doc);
+                looseGrid.appendChild(card);
+            });
+        }
     } catch (e) {
-        showToast('Failed to load library', 'error');
+        showToast('Failed to load library: ' + e.message, 'error');
     }
 }
+
+function createTextbookCard(tb) {
+    const profile = bookProfiles[tb.book] || {};
+    const color = profile.color_palette?.[0] || 'var(--color-primary)';
+    
+    const card = document.createElement('div');
+    card.className = 'doc-card textbook-card';
+    card.style.borderLeft = `4px solid ${color}`;
+    
+    card.innerHTML = `
+        <div class="doc-card__meta">
+            <span class="doc-card__chapter-badge" style="background: ${color}">${tb.chapter_count} Chapters</span>
+            <span>${tb.total_sections} sections</span>
+        </div>
+        <div class="doc-card__title" title="${tb.textbook}">${tb.textbook}</div>
+        <div class="doc-card__tag" style="color: ${color}">${tb.book.replace('_', ' ')}</div>
+        
+        <div class="textbook-chapters hidden"></div>
+    `;
+    
+    const chList = card.querySelector('.textbook-chapters');
+    card.addEventListener('click', (e) => {
+        if (e.target.closest('.textbook-chapter-item')) return;
+        chList.classList.toggle('hidden');
+    });
+
+    tb.chapters.forEach(ch => {
+        const chItem = document.createElement('div');
+        chItem.className = 'textbook-chapter-item';
+        chItem.innerHTML = `
+            <span class="ch-num">Ch. ${String(ch.chapter_number).padStart(2, '0')}</span>
+            <span class="ch-title" title="${ch.chapter_title}">${ch.chapter_title}</span>
+            <span class="ch-sections">${ch.section_count} sec</span>
+        `;
+        chItem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            loadDocument(ch.id);
+        });
+        chList.appendChild(chItem);
+    });
+    
+    return card;
+}
+
+function createLooseDocCard(doc) {
+    const profile = bookProfiles[doc.book] || {};
+    const color = profile.color_palette?.[0] || 'var(--border)';
+    
+    const date = new Date(doc.uploaded_at).toLocaleDateString();
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    card.style.borderLeft = `4px solid ${color}`;
+    
+    card.innerHTML = `
+        <div class="doc-card__meta">
+            ${doc.chapter_number ? `<span class="doc-card__chapter-badge">Ch. ${String(doc.chapter_number).padStart(2,'0')}</span>` : `<span>${date}</span>`}
+            <span>${doc.section_count} sections</span>
+        </div>
+        <div class="doc-card__title" title="${doc.chapter_title || doc.filename}">${doc.chapter_title || doc.filename}</div>
+        <div class="doc-card__tag" style="color: ${color}">${doc.book.replace('_', ' ')}</div>
+    `;
+    
+    card.addEventListener('click', () => loadDocument(doc.id));
+    return card;
+}
+
 
 // ═══ Upload / Progress ═══
 function setupUploadZone() {
@@ -910,9 +983,10 @@ function renderDocument() {
         const secHasMnemonics = hasMnemonics(section.mnemonics);
 
         div.innerHTML = `
-            <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div class="${isEditing ? 'hidden' : ''}">
+            <div class="bs-list-item__header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="${isEditing ? 'hidden' : ''}" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                     <div class="bs-list-item__title" id="section-title-view-${index}">${section.title}</div>
+                    <button class="btn btn-link btn-sm btn-section-history" data-index="${index}" title="View Page Revision History" style="padding: 0.25rem; font-size: 0.85rem; color: var(--color-primary); background: transparent; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; text-decoration: none;">🕓 History</button>
                 </div>
             </div>
             
@@ -946,6 +1020,16 @@ function renderDocument() {
         div.querySelector('.btn-delete-section').onclick = () => deleteSection(index);
         div.querySelector('.btn-add-section').onclick = () => createSection(index);
         div.querySelector('.btn-split-section').onclick = () => splitSection(index);
+        
+        const btnSectionHistory = div.querySelector('.btn-section-history');
+        if (btnSectionHistory) {
+            btnSectionHistory.onclick = (e) => {
+                e.stopPropagation();
+                const filePath = getSectionFilePath(section, index);
+                openRevisionsModal(currentDocument.id, filePath);
+            };
+        }
+
         
         // Sidebar update on focus/click
         div.addEventListener('focusin', () => { updateEngineSidebar(index); loadMnemonicsToSidebar(index); });
@@ -1491,34 +1575,42 @@ function toggleEditMode() {
 }
 
 // ═══ Revisions Modal ═══
-async function openRevisionsModal(docId) {
+let activeRevisionPath = null;
+
+async function openRevisionsModal(docId, customPath = null) {
     const modal = document.getElementById('modal-revisions');
     const body = document.getElementById('revisions-body');
+    const diffContainer = document.getElementById('revisions-diff-container');
+    if (diffContainer) diffContainer.classList.add('hidden');
+    
     body.innerHTML = '<p class="text-muted">Loading...</p>';
     modal.classList.remove('hidden');
 
     try {
-        const res = await fetch(`/api/documents/${docId}/revisions`);
+        activeRevisionPath = customPath || `${currentDocument.book}/${currentDocument.title || currentDocument.filename}/_index.md`;
+        const docPath = customPath ? customPath : `${currentDocument.book}/${currentDocument.title || currentDocument.filename}`;
+        const res = await fetch(`/api/revisions/history?path=${encodeURIComponent(docPath)}`);
         if (!res.ok) throw new Error('Failed to load revisions');
-        const data = await res.json();
+        const commits = await res.json();
 
-        if (!data.revisions || data.revisions.length === 0) {
-            body.innerHTML = '<p class="text-muted">No revision history available.</p>';
+        if (!commits || commits.length === 0) {
+            body.innerHTML = '<p class="text-muted">No Git history available. Export this document first.</p>';
             return;
         }
 
-        // Render timeline (newest first)
-        const revs = [...data.revisions].reverse();
-        let html = '<ul class="revision-timeline">';
-        revs.forEach(rev => {
-            const time = rev.timestamp ? timeAgo(rev.timestamp) : '';
+        let html = '<ul class="revision-timeline" style="list-style:none; padding:0;">';
+        commits.forEach(commit => {
+            const time = timeAgo(commit.date);
             html += `
-                <li class="revision-item">
-                    <div class="revision-dot"></div>
+                <li class="revision-item" style="border-bottom: 1px solid var(--border-color); padding: 1rem 0; display: flex; justify-content: space-between; align-items: center;">
                     <div class="revision-content">
-                        <div class="rev-number">Revision #${rev.revision}</div>
-                        <div class="rev-summary">${rev.summary || 'No description'}</div>
-                        <div class="rev-time">${time}</div>
+                        <div class="rev-number" style="font-weight:bold; color:var(--color-primary);">Commit ${commit.sha.substring(0, 8)}</div>
+                        <div class="rev-summary">${commit.message}</div>
+                        <div class="rev-author" style="font-size:0.8rem; color:var(--text-secondary);">${commit.author} &bull; ${time}</div>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="compareGitDiff('${commit.sha}')">Compare Diff</button>
+                        <button class="btn btn-primary btn-sm" style="background:var(--color-danger);" onclick="executeRollback('${commit.sha}')">Rollback</button>
                     </div>
                 </li>
             `;
@@ -2101,3 +2193,120 @@ async function executeSlicer() {
 document.getElementById('btn-sidebar-save')?.addEventListener('click', saveMnemonics);
 document.getElementById('btn-sidebar-regen')?.addEventListener('click', regenerateMnemonics);
 document.getElementById('btn-sidebar-generate-acronym')?.addEventListener('click', generateAcronymFromTitle);
+
+// ═══ Enterprise Upgrades Helper Functions ═══
+
+async function compareGitDiff(sha) {
+    const diffContainer = document.getElementById('revisions-diff-container');
+    const oldPre = document.getElementById('diff-old-content');
+    const newPre = document.getElementById('diff-new-content');
+    
+    oldPre.textContent = 'Loading...';
+    newPre.textContent = 'Loading...';
+    diffContainer.classList.remove('hidden');
+    
+    try {
+        const docPath = activeRevisionPath || `${currentDocument.book}/${currentDocument.title || currentDocument.filename}/_index.md`;
+        const res = await fetch(`/api/revisions/diff?commit_sha=${sha}&relative_path=${encodeURIComponent(docPath)}`);
+        if (!res.ok) throw new Error('Failed to load diff');
+        const data = await res.json();
+        
+        oldPre.textContent = data.old_content || '(File did not exist)';
+        newPre.textContent = data.new_content || '(File is empty)';
+    } catch (e) {
+        oldPre.textContent = 'Error: ' + e.message;
+        newPre.textContent = 'Error: ' + e.message;
+    }
+}
+
+async function executeRollback(sha) {
+    if (!confirm(`Are you sure you want to rollback to commit ${sha.substring(0, 8)}?`)) return;
+    
+    try {
+        const docPath = activeRevisionPath || `${currentDocument.book}/${currentDocument.title || currentDocument.filename}/_index.md`;
+        const res = await fetch('/api/revisions/rollback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                commit_sha: sha,
+                relative_path: docPath,
+                username: 'Admin'
+            })
+        });
+        if (!res.ok) throw new Error('Rollback failed');
+        
+        showToast('Rollback executed and committed successfully!', 'success');
+        document.getElementById('modal-revisions').classList.add('hidden');
+        await loadDocument(currentDocument.id);
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+async function initPreferences() {
+    try {
+        const res = await fetch('/api/auth/preferences');
+        if (res.ok) {
+            const prefs = await res.json();
+            setTheme(prefs.theme);
+            document.getElementById('language-select').value = prefs.language;
+        }
+    } catch (e) {
+        console.error('Failed to init preferences:', e);
+    }
+}
+
+function setTheme(theme) {
+    if (theme === 'light') {
+        document.body.classList.remove('dark-mode');
+        document.body.classList.add('light-mode');
+        document.getElementById('theme-toggle-btn').textContent = '☀️';
+    } else {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle-btn').textContent = '🌙';
+    }
+}
+
+function setupEnterpriseFeatures() {
+    // Theme Toggle
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
+        const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        savePreferences(newTheme, document.getElementById('language-select').value);
+    });
+
+    // Language Selector
+    document.getElementById('language-select')?.addEventListener('change', (e) => {
+        const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        savePreferences(theme, e.target.value);
+        showToast(`Language set to ${e.target.options[e.target.selectedIndex].text}`, 'info');
+    });
+
+    // Diagram Toggle (Under Construction)
+    document.getElementById('btn-toggle-diagram')?.addEventListener('click', () => {
+        alert('Draw Memory Palace feature is currently under construction.');
+    });
+}
+
+function getSectionFilePath(section, index) {
+    const title = section.title || `Section ${index + 1}`;
+    const cleaned = title.replace(/\s+/g, ' ').trim();
+    const safeTitle = cleaned.replace(/[^\w\s-]/g, '').trim().substring(0, 60);
+    return `${currentDocument.book}/${currentDocument.title || currentDocument.filename}/${String(index + 1).padStart(2, '0')} - ${safeTitle}.md`;
+}
+
+async function savePreferences(theme, language) {
+    try {
+        await fetch('/api/auth/preferences', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({theme, language})
+        });
+    } catch (e) {
+        console.error('Failed to save preferences:', e);
+    }
+}
+
+

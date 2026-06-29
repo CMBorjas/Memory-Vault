@@ -23,6 +23,10 @@ STATIC_DIR = BASE_DIR / "static"
 # Singletons
 from core.engine import MnemonicEngine
 from services.exporter import ObsidianExporter
+from core.database import init_db
+
+init_db()
 
 engine = MnemonicEngine(CONFIG_PATH)
 exporter = ObsidianExporter(VAULT_PATH)
+

@@ -105,3 +105,21 @@ books:
       with the medicinal, throat-coating burn of iodine swabbed on an open wound.
 
       '
+  Memory_Vault:
+    kingdom: Flora
+    aesthetic: Luminous/Silicon
+    scent_primary: Eucalyptus
+    scent_secondary: Menthol
+    color_palette:
+    - '#00FFCC'
+    - '#00B386'
+    - '#004D3D'
+    visual_keywords:
+    - luminous lichen
+    - glowing roots
+    - silicon veins
+    - bioluminescent moss
+    - digital chloroplasts
+    sensory_description: 'The sharp, clearing essence of fresh eucalyptus combined with the cool, electric sting of pure menthol, mimicking a breeze blowing through a glowing digital conservatory.
+
+      '

@@ -2,9 +2,10 @@ import json
 import uuid
 import re
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from core.config import PROCESSED_DIR, UPLOAD_DIR, engine, exporter, logger
+from api.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api", tags=["documents"])
 
@@ -25,12 +26,24 @@ async def list_documents():
     return docs
 
 @router.get("/documents/{doc_id}")
-async def get_document(doc_id: str):
+async def get_document(doc_id: str, current_user: dict = Depends(get_current_user)):
     p = PROCESSED_DIR / f"{doc_id}.json"
     if not p.exists():
         raise HTTPException(status_code=404, detail="Not found.")
     with open(p) as f:
-        return json.load(f)
+        doc = json.load(f)
+        
+    # Content-level permissions tied to the "Sanitizer Protocol"
+    if "Guest" in current_user.get("roles", []):
+        # Restrict guest roles to only see the Sanitized View (strip grotesque mnemonics)
+        if "mnemonics" in doc:
+            doc["mnemonics"] = {}
+        for section in doc.get("sections", []):
+            if "mnemonics" in section:
+                section["mnemonics"] = {}
+                
+    return doc
+
 
 @router.put("/documents/{doc_id}/sections/{section_idx}/mnemonics")
 async def update_mnemonics(doc_id: str, section_idx: int, mnemonics: dict):
@@ -403,3 +416,28 @@ async def list_textbooks():
         "textbooks": list(grouped.values()),
         "loose": loose,
     }
+
+class DiagramUpdate(BaseModel):
+    data: str
+
+@router.put("/documents/{doc_id}/diagram")
+async def save_diagram(doc_id: str, update: DiagramUpdate):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    doc["diagram"] = update.data
+    with open(p, "w") as f:
+        json.dump(doc, f, indent=2)
+    return {"message": "Diagram saved successfully."}
+
+@router.get("/documents/{doc_id}/diagram")
+async def get_diagram(doc_id: str):
+    p = PROCESSED_DIR / f"{doc_id}.json"
+    if not p.exists():
+        raise HTTPException(status_code=404, detail="Not found.")
+    with open(p) as f:
+        doc = json.load(f)
+    return {"data": doc.get("diagram", "")}
+
