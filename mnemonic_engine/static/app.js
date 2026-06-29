@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupNavigation();
     setupUploadZone();
     requestNotificationPermission();
+    setupToolbar();
 
     await checkEngineStatus();
     await loadBooks();
@@ -842,54 +843,6 @@ function renderDocument() {
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%;">
             <input type="text" id="doc-title-input" class="hidden" value="${displayTitle}" style="flex-grow: 1; font-size: 2.5rem; border-radius: 4px; padding: 0.5rem; margin-bottom: 0.25rem; font-family: inherit; font-weight: 400; color: #ffffff; background: var(--bg-hover); border: 1px solid var(--border-color);">
             <button class="btn btn-link hidden" id="btn-open-editor-title" title="${chapHasMnemonics ? 'Mnemonics saved ✅' : 'Open Mnemonics Editor'}" style="font-size: 1.5rem; color: var(--color-primary); background: transparent; border: 1px solid ${chapHasMnemonics ? '#4ecca3' : 'var(--color-primary)'}; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;">${chapHasMnemonics ? '✅' : '➕'}</button>
-        </div>
-        
-        <div id="wysiwyg-toolbar" class="hidden formatting-toolbar">
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Undo">↩</button>
-                <button class="toolbar-btn" title="Redo">↪</button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <select class="toolbar-select">
-                    <option>Paragraph</option>
-                    <option>Heading 1</option>
-                    <option>Heading 2</option>
-                    <option>Heading 3</option>
-                </select>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" style="font-weight: bold;" title="Bold">B</button>
-                <button class="toolbar-btn" style="font-style: italic;" title="Italic">I</button>
-                <button class="toolbar-btn" style="text-decoration: underline;" title="Underline">U</button>
-                <button class="toolbar-btn" title="Text Color">A<span style="font-size: 0.6em; margin-left: 2px;">▼</span></button>
-                <button class="toolbar-btn" title="Background Color">🖌<span style="font-size: 0.6em; margin-left: 2px;">▼</span></button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Align Left">≣</button>
-                <button class="toolbar-btn" title="Align Center">≡</button>
-                <button class="toolbar-btn" title="Align Right">≣</button>
-                <button class="toolbar-btn" title="Justify">▤</button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Bullet List">•</button>
-                <button class="toolbar-btn" title="Numbered List">1.</button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Link">🔗</button>
-                <button class="toolbar-btn" title="Table">▦</button>
-                <button class="toolbar-btn" title="Image">🖼</button>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Code Block">&lt;/&gt;</button>
-                <button class="toolbar-btn" title="Help">?</button>
-                <button class="toolbar-btn" title="Fullscreen">⛶</button>
-            </div>
         </div>
 
         <p class="text-muted" style="margin-bottom: 2rem;">Processed via Anti-Gravity Mnemonic Engine</p>
@@ -2310,3 +2263,202 @@ async function savePreferences(theme, language) {
 }
 
 
+// ═══ Formatting Toolbar Logic ═══
+// Tracks the textarea that last had focus so toolbar actions target it.
+let _toolbarTarget = null;
+
+function setupToolbar() {
+    const toolbar = document.getElementById('wysiwyg-toolbar');
+    if (!toolbar) return;
+
+    // --- Track active textarea ---
+    // Capture phase so we catch focus before the toolbar button steals it.
+    document.addEventListener('focusin', (e) => {
+        if (e.target.tagName === 'TEXTAREA' ||
+            (e.target.tagName === 'INPUT' && e.target.type === 'text')) {
+            _toolbarTarget = e.target;
+        }
+    }, true);
+
+    // --- Helpers ---
+
+    // Wrap selected text with prefix+suffix (or insert markers at cursor).
+    function wrapSelection(ta, prefix, suffix) {
+        const start    = ta.selectionStart;
+        const end      = ta.selectionEnd;
+        const val      = ta.value;
+        const selected = val.slice(start, end);
+        const replacement = `${prefix}${selected}${suffix}`;
+        ta.value = val.slice(0, start) + replacement + val.slice(end);
+        if (selected.length) {
+            ta.selectionStart = start;
+            ta.selectionEnd   = start + replacement.length;
+        } else {
+            ta.selectionStart = ta.selectionEnd = start + prefix.length;
+        }
+    }
+
+    // Prefix / un-prefix every line in the selection (or current line) with linePrefix.
+    function prefixLines(ta, linePrefix) {
+        const val   = ta.value;
+        const start = ta.selectionStart;
+        const end   = ta.selectionEnd;
+
+        // Expand to full lines
+        const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+        const lineEndIdx = val.indexOf('\n', end);
+        const blockEnd  = lineEndIdx === -1 ? val.length : lineEndIdx;
+
+        const block = val.slice(lineStart, blockEnd);
+        const lines = block.split('\n');
+
+        // Toggle: if every line already has the prefix, remove it; otherwise add.
+        const allPrefixed = lines.every(l => l.startsWith(linePrefix));
+        const newLines = allPrefixed
+            ? lines.map(l => l.slice(linePrefix.length))
+            : lines.map(l => linePrefix + l);
+
+        const newBlock = newLines.join('\n');
+        const delta    = newBlock.length - block.length;
+
+        ta.value = val.slice(0, lineStart) + newBlock + val.slice(blockEnd);
+
+        // Restore / adjust selection
+        const adjStart = allPrefixed ? Math.max(lineStart, start - linePrefix.length) : start + linePrefix.length;
+        ta.selectionStart = adjStart;
+        ta.selectionEnd   = end + delta;
+    }
+
+    // Number lines sequentially (toggle off if already numbered).
+    function numberLines(ta) {
+        const val   = ta.value;
+        const start = ta.selectionStart;
+        const end   = ta.selectionEnd;
+
+        const lineStart  = val.lastIndexOf('\n', start - 1) + 1;
+        const lineEndIdx = val.indexOf('\n', end);
+        const blockEnd   = lineEndIdx === -1 ? val.length : lineEndIdx;
+
+        const block = val.slice(lineStart, blockEnd);
+        const lines = block.split('\n');
+
+        const alreadyNumbered = lines.every(l => /^\d+\.\s/.test(l));
+        const newLines = alreadyNumbered
+            ? lines.map(l => l.replace(/^\d+\.\s/, ''))
+            : lines.map((l, i) => `${i + 1}. ${l}`);
+
+        const newBlock = newLines.join('\n');
+        const delta    = newBlock.length - block.length;
+
+        ta.value = val.slice(0, lineStart) + newBlock + val.slice(blockEnd);
+        ta.selectionStart = start;
+        ta.selectionEnd   = end + delta;
+    }
+
+    // Apply or strip a Markdown heading prefix on the current line.
+    function setHeading(ta, level) {
+        const prefix = level === 0 ? '' : '#'.repeat(level) + ' ';
+        const val    = ta.value;
+        const start  = ta.selectionStart;
+
+        const lineStart  = val.lastIndexOf('\n', start - 1) + 1;
+        const lineEndIdx = val.indexOf('\n', start);
+        const blockEnd   = lineEndIdx === -1 ? val.length : lineEndIdx;
+
+        const line     = val.slice(lineStart, blockEnd);
+        const stripped = line.replace(/^#{1,6}\s/, '');
+        const newLine  = prefix + stripped;
+
+        ta.value = val.slice(0, lineStart) + newLine + val.slice(blockEnd);
+        ta.selectionStart = ta.selectionEnd = lineStart + newLine.length;
+    }
+
+    // Apply action to the tracked textarea, restoring focus.
+    function applyToTarget(fn) {
+        const ta = _toolbarTarget;
+        if (!ta) {
+            showToast('Click inside a Source Content or Title field first.', 'info');
+            return;
+        }
+        ta.focus();
+        fn(ta);
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // --- Prevent toolbar clicks from blurring the textarea ---
+    toolbar.addEventListener('mousedown', (e) => {
+        // Only prevent default for buttons/selects, not for the select dropdown itself.
+        if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
+            e.preventDefault();
+        }
+    });
+
+    // --- Button click dispatcher ---
+    toolbar.addEventListener('click', (e) => {
+        const btn = e.target.closest('button.toolbar-btn');
+        if (!btn) return;
+
+        const title = btn.getAttribute('title');
+        switch (title) {
+            case 'Undo':
+                applyToTarget(ta => { ta.focus(); document.execCommand('undo'); });
+                break;
+            case 'Redo':
+                applyToTarget(ta => { ta.focus(); document.execCommand('redo'); });
+                break;
+
+            case 'Bold':
+                applyToTarget(ta => wrapSelection(ta, '**', '**'));
+                break;
+            case 'Italic':
+                applyToTarget(ta => wrapSelection(ta, '_', '_'));
+                break;
+            case 'Underline':
+                applyToTarget(ta => wrapSelection(ta, '__', '__'));
+                break;
+
+            case 'Bullet List':
+                applyToTarget(ta => prefixLines(ta, '• '));
+                break;
+            case 'Numbered List':
+                applyToTarget(ta => numberLines(ta));
+                break;
+
+            case 'Link':
+                applyToTarget(ta => wrapSelection(ta, '[', '](url)'));
+                break;
+            case 'Table':
+                applyToTarget(ta => {
+                    const tbl = '\n| Column 1 | Column 2 |\n|----------|----------|\n| Cell     | Cell     |\n';
+                    const pos = ta.selectionStart;
+                    ta.value = ta.value.slice(0, pos) + tbl + ta.value.slice(pos);
+                    ta.selectionStart = ta.selectionEnd = pos + tbl.length;
+                });
+                break;
+            case 'Image':
+                applyToTarget(ta => wrapSelection(ta, '![', '](image-url)'));
+                break;
+            case 'Code Block':
+                applyToTarget(ta => wrapSelection(ta, '```\n', '\n```'));
+                break;
+            case 'Help':
+                showToast('Click inside a Source Content field, then use the toolbar. Bullet List prefixes selected lines with • ', 'info');
+                break;
+        }
+    });
+
+    // --- Heading/Paragraph select ---
+    toolbar.addEventListener('change', (e) => {
+        const sel = e.target.closest('select.toolbar-select');
+        if (!sel) return;
+        const val = sel.value;
+        applyToTarget(ta => {
+            if (val === 'Paragraph')  setHeading(ta, 0);
+            else if (val === 'Heading 1') setHeading(ta, 1);
+            else if (val === 'Heading 2') setHeading(ta, 2);
+            else if (val === 'Heading 3') setHeading(ta, 3);
+        });
+        // Reset dropdown
+        sel.value = 'Paragraph';
+    });
+}

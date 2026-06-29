@@ -172,13 +172,11 @@ body.editing-mode .bs-breadcrumb {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  background: #232528;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  margin-top: 0.5rem;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  background: #1e2024;
+  border-top: 1px solid var(--border-color);
+  border-radius: 0;
+  padding: 0.4rem 1rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .toolbar-group {

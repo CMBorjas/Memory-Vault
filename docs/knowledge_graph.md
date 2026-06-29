@@ -1,6 +1,6 @@
 # Anti-Gravity Mnemonic Engine — IT Knowledge Graph
 
-> **Last Updated:** 2026-06-29
+> **Last Updated:** 2026-06-29 (v0.2.1 — Sticky Toolbar & Source Editing)
 > **Maintained by:** AI agents per [`AI_RULES.md`](../AI_RULES.md) — update after every milestone or structural change.
 
 This document is the canonical in-repository architectural reference for the **Anti-Gravity Knowledge Engine (AGKE / Memory Vault)**. The full version with component tables and pipeline diagrams lives in the [AI Knowledge Item](../../../.gemini/antigravity-ide/knowledge/project_architecture/artifacts/knowledge_graph.md).
@@ -28,6 +28,7 @@ graph TD
         PREFS_UI["Preferences Toggles\n(Theme & Language selects)"]:::frontend
         DIAGRAM["Draw.io Iframe\n(Palace sketch canvas)"]:::frontend
         DIFF_GUI["Diff Comparison\n(Git timeline + Diffs)"]:::frontend
+        TOOLBAR["Sticky Formatting Toolbar\n(setupToolbar — Bullet/Number/Bold/Italic/\nHeading/Link/Table/Code)"]:::frontend
         STORY_UI["Story Arc UI\nChapter multi-select + LLM output"]:::planned
         ANKI_UI["Anki Export Modal\nbrowser textarea + .txt download"]:::planned
     end
@@ -79,6 +80,7 @@ graph TD
     UI --> PREFS_UI
     UI --> DIAG
     UI --> DIFF_GUI
+    UI --> TOOLBAR
 
     API --> OCR
     API --> ME
@@ -132,6 +134,7 @@ graph TD
 - **Draw.io palace sketch canvas**: Embedded iframe canvas for native sketching
 - **Git Revisions Timeline**: Commit list history, diff comparisons, and checkout rollback actions
 - **Preferences switchers**: Theme (Light/Dark mode) and Language toggles in header
+- **Sticky Formatting Toolbar** (`#wysiwyg-toolbar` inside `#edit-action-bar`): Lives in the `position:sticky` action bar so it follows the user while scrolling. Implemented via `setupToolbar()` in `app.js`. Buttons: Bullet List (`• ` prefix per line, toggleable), Numbered List (1. 2. 3., toggleable), Bold (`**`), Italic (`_`), Underline (`__`), Link, Image, Code Block, Table, Heading (H1–H3 via `#` prefix). A `focusin` capture listener tracks `_toolbarTarget`; `mousedown.preventDefault()` prevents textarea focus loss on button click.
 
 ### 2. Backend Layer (`mnemonic_engine/`)
 
